@@ -1,4 +1,4 @@
-# Toasty (v0.3.0)
+# Toasty (v0.3.1)
 
 Your camping status in WoW: Forever, as three icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -22,7 +22,8 @@ Your camping status in WoW: Forever, as three icons that look like your buff bar
 
 ### Combat and secret values
 - Using an item needs a secure button, so the icon bar is protected: moving it, resizing it, showing or hiding it and switching icon 1 between "buff" and "use bag" wait until you leave combat. The icons and times still update in combat.
-- If Forever hides a buff's time or stacks in combat, Toasty keeps the last value it could read, or shows nothing. It never guesses.
+- In combat, Forever hides which buff is which from addons. Toasty asks for each of its buffs directly by spell ID, which should still work. If it can't tell, a buff you had when the fight started stays lit and keeps counting down from the time Toasty already knew; it goes gray when that time runs out or after combat if it's gone.
+- A buff you gain during combat may show without its time until combat ends. Toasty never guesses a time.
 
 ## Install
 1. Copy the `Toasty` folder to `World of Warcraft\_forever_\Interface\AddOns\`.
@@ -66,6 +67,7 @@ Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.
 ## Needs in-game verification
 - That the four buff and debuff IDs are right on the live client. `/toasty probe` "Buffs" lines show each ID, any learned ID, and red "(name not from client)" if the client didn't know it.
 - That Well-Rested has stacks (probe "stacks").
+- That `C_UnitAuras.GetPlayerAuraBySpellID` finds the buffs in combat: run `/toasty probe` during a fight. "by-ID lookup worked in combat yes" means icons stay exact in combat; "not yet" with "kept" buffs means Toasty is holding the last known state.
 - That Boosted Rest is a debuff with a timer, and that you can get rested XP from a tent again once it's gone (icon 3 gray).
 - That clicking the bag icon uses the bag once, not twice or never. Probe shows "button uses bag" and your "cast on key down" setting.
 - That camp objects show a tooltip when hovered at all (some world objects don't), and that the tooltip's first line is the object's plain name. Probe "Object tooltips" shows how many were explained, and the title of the last world tooltip that wasn't a known object, so a different name can be added.

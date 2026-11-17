@@ -24,7 +24,7 @@ local function Probe()
   ns.Print("Probe: build", build, "interface", iface, "version", ns.VERSION)
 
   local apis = {
-    "C_UnitAuras.GetAuraDataByIndex", "UnitAura", "GameTooltip.SetUnitBuffByAuraInstanceID",
+    "C_UnitAuras.GetPlayerAuraBySpellID", "C_UnitAuras.GetAuraDataByIndex", "UnitAura", "GameTooltip.SetUnitBuffByAuraInstanceID",
     "GameTooltip.SetUnitDebuffByAuraInstanceID",
     "C_Item.GetItemCount", "C_Container.GetItemCooldown", "C_Spell.GetSpellTexture",
     "SecondsToTimeAbbrev", "TooltipDataProcessor.AddTooltipPostCall", "Enum.TooltipDataType.Object",
@@ -44,13 +44,17 @@ local function Probe()
     local now = Gray("off")
     if a then
       local left = S:Left(a)
-      now = Yes("on") .. " id " .. tostring(a.id) .. " · stacks " .. tostring(a.stacks)
+      now = (a.kept and ns.UI.Wrap(ns.UI.YELLOW, "kept") or Yes("on")) .. " id " .. tostring(a.id) .. " · stacks " .. tostring(a.stacks)
         .. " · " .. (left and (ns.Duration(left) .. " of " .. tostring(ns.Duration(a.duration) or "?")) or "no end")
     end
     P("    " .. S:Name(key) .. (S.clientNames[key] and "" or No(" (name not from client)"))
       .. " · " .. def.id .. (learned and learned ~= def.id and (" learned " .. learned) or "") .. " · " .. now)
   end
 
+  P("  Combat: in combat " .. tostring(InCombatLockdown() and true or false)
+    .. " · by-ID lookup worked in combat " .. (S.byIDInCombat and Yes("yes") or Gray("not yet"))
+    .. " · unreadable auras last scan " .. S.seen.unreadable
+    .. " · found by ID " .. S.seen.byID .. " · kept " .. S.seen.kept)
   local start, duration = S:BagCooldown()
   P("  Cozy Sleeping Bag: " .. S.bagCount .. " in bags · cooldown "
     .. ((start and duration and duration > 1.5) and ns.Duration(start + duration - GetTime()) or "none")

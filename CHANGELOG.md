@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1 (2026-11-17)
+- Fixed: the icons no longer turn gray in combat. Your buffs stay lit and keep counting down during a fight.
+
 ## 0.3.0 (2026-11-17)
 - New third icon: Boosted Rest, the Camp Tent's cooldown, with its time left. Gray when you don't have it, meaning a Camp Tent can give you more rested XP.
 

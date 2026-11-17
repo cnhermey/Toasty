@@ -7,14 +7,23 @@
 --   * Cozy Sleeping Bag (item 211527): how many are in your bags.
 -- Forever quirks: spell IDs may differ from the guides, so each buff is
 -- matched by ID *and* by its name, and an ID seen by name is learned into
--- ToastyDB.learned. Buff times and stacks can be secret in combat; then the
--- last readable value is kept, or the text is left empty (never a guess).
+-- ToastyDB.learned.
+-- Combat: Forever makes aura IDs, names, times and stacks secret, so a scan
+-- by index can't tell which buff is which (0.3.0 then showed every icon as
+-- missing). So each buff is first asked for directly by its known ID
+-- (C_UnitAuras.GetPlayerAuraBySpellID: whether it exists should stay
+-- readable). Until that is seen working in combat, a buff we had but can't
+-- identify any more is kept ("kept") and its known end time keeps counting;
+-- it goes when that time runs out or the next readable scan says so.
+-- Times and stacks that are secret keep the last readable value, or show
+-- nothing. Never a guess.
 local _, ns = ...
 
 local S = {
   s = {},                  -- key -> aura info, for buffs you have now
   bagCount = 0,
-  seen = { scans = 0 },
+  seen = { scans = 0, unreadable = 0, byID = 0, kept = 0 },
+  byIDInCombat = false,    -- the by-ID lookup has found a buff during combat
 }
 ns.Status = S
 
@@ -79,6 +88,15 @@ local function EachAura(filter, fn)
   end
 end
 
+-- Ask for one buff by its known IDs. Returns the aura and the ID asked for.
+local function ByID(key)
+  if not (C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID) then return nil end
+  for id in pairs(ids[key]) do
+    local a = ns.Try("GetPlayerAuraBySpellID", C_UnitAuras.GetPlayerAuraBySpellID, id)
+    if type(a) == "table" then return a, id end
+  end
+end
+
 local function Read(a, prev)
   local r = {
     icon = ns.Clean(a.icon),
@@ -100,10 +118,26 @@ end
 function S:Scan()
   if not ns.db then return end
   S.seen.scans = S.seen.scans + 1
-  local found = {}
+  local found, askedID = {}, {}
+  local inCombat = InCombatLockdown and InCombatLockdown() and true or false
+
+  -- 1. By ID: works even when the details are hidden.
+  for key in pairs(S.AURAS) do
+    local a, id = ByID(key)
+    if a then
+      found[key], askedID[key] = a, id
+      S.seen.byID = S.seen.byID + 1
+      if inCombat then S.byIDInCombat = true end
+    end
+  end
+
+  -- 2. By index: finds buffs under a new ID by their name (learning it), and
+  -- counts auras we can't identify (hidden ID and name).
+  local unreadable = 0
   for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
     EachAura(filter, function(a)
       local id, name = ns.Num(a.spellId), ns.Str(a.name)
+      if id == nil and name == nil then unreadable = unreadable + 1 end
       for key, def in pairs(S.AURAS) do
         if def.filter == filter and not found[key]
           and ((id and ids[key][id]) or (name and name == names[key])) then
@@ -117,15 +151,40 @@ function S:Scan()
       end
     end)
   end
+  S.seen.unreadable = unreadable
+
+  -- Not found, but the scan couldn't read everything, and we haven't seen
+  -- the by-ID lookup work in combat: we can't tell it's gone, so keep it.
+  local blind = unreadable > 0 and not S.byIDInCombat
   local old, s = self.s, {}
+  local now = GetTime()
   for key in pairs(S.AURAS) do
     if found[key] then
       s[key] = Read(found[key], old[key])
+      s[key].id = s[key].id or askedID[key]
       s[key].filter = S.AURAS[key].filter
+    elseif blind and old[key] and (old[key].expires == nil or old[key].expires > now) then
+      local k = {}
+      for f, v in pairs(old[key]) do k[f] = v end
+      k.kept, k.instance = true, nil   -- the old instance may be gone: spell tooltip instead
+      s[key] = k
+      S.seen.kept = S.seen.kept + 1
     end
   end
   self.s = s
   ns.Fire("STATUS_CHANGED")
+end
+
+-- Kept buffs end when their known time runs out.
+function S:DropExpired()
+  local now, changed = GetTime(), false
+  for key, a in pairs(self.s) do
+    if a.kept and a.expires and a.expires <= now then
+      self.s[key] = nil
+      changed = true
+    end
+  end
+  if changed then ns.Fire("STATUS_CHANGED") end
 end
 
 -- Seconds left on a buff, or nil when it doesn't run out or can't be read.
@@ -168,6 +227,12 @@ ns.Listen("LOGIN", function()
   BuildNames()   -- some names only load after login
   S:CountBags()
   S:Scan()
+  C_Timer.NewTicker(1, function() S:DropExpired() end)
+end)
+
+-- Leaving combat: read everything again with the details visible.
+ns.On("PLAYER_REGEN_ENABLED", function()
+  ns.Coalesce("scan", 0.2, function() S:Scan() end)
 end)
 
 ns.OnUnit("UNIT_AURA", "player", function()
