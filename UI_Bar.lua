@@ -33,6 +33,8 @@ local PAD_TOP = 9      -- above the name
 local TITLE_H = 14     -- the name's line
 local TITLE_GAP = 5    -- name to icons
 local PAD_BOTTOM = 6   -- under the time text
+local SUB_H = 13       -- the short label over each icon (Settings > Icon labels)
+local SUBHEADS = { "Bag", "Fire", "Rested", "XP" }
 local COUNT = 4
 local ROW_W = SIZE * COUNT + GAP * (COUNT - 1)
 local WARN = BUFF_DURATION_WARNING_TIME or 60   -- white text under a minute
@@ -61,6 +63,10 @@ function B:ApplyLayout()
     -- Name and border: a tooltip-style panel with "Toasty" over the icons.
     local framed = ns.db.framed
     local top = framed and (PAD_TOP + TITLE_H + TITLE_GAP) or 0
+    -- Short labels over the icons ("Bag", "Fire", "Rested", "XP").
+    local subs = ns.db.iconLabels
+    if subs then top = top + SUB_H end
+    for _, slot in ipairs(self.slots) do slot.subhead:SetShown(subs) end
     local side = framed and PAD_X or 0
     f:SetSize(ROW_W + side * 2, top + SIZE + DURATION_H + (framed and PAD_BOTTOM or 0))
     self.slots[1]:ClearAllPoints()
@@ -186,6 +192,14 @@ local function Build()
   B.slots[3]:SetPoint("TOPLEFT", B.slots[2], "TOPRIGHT", GAP, 0)
   B.slots[4] = MakeSlot(f, "ToastyFoodButton")
   B.slots[4]:SetPoint("TOPLEFT", B.slots[3], "TOPRIGHT", GAP, 0)
+
+  -- Each icon's short label, centered over it in Blizzard's small font.
+  for i, slot in ipairs(B.slots) do
+    slot.subhead = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    slot.subhead:SetPoint("BOTTOM", slot, "TOP", 0, 3)
+    slot.subhead:SetTextColor(0.82, 0.82, 0.82)
+    slot.subhead:SetText(SUBHEADS[i])
+  end
 
   -- Time left: redraw twice a second, like the buff bar.
   local acc = 0
@@ -383,6 +397,6 @@ ns.Listen("LOGIN", function()
 end)
 ns.Listen("STATUS_CHANGED", function() B:Refresh() end)
 ns.Listen("SETTINGS_CHANGED", function(key)
-  if key == "scale" or key == "enabled" or key == "framed" then B:ApplyLayout() end
+  if key == "scale" or key == "enabled" or key == "framed" or key == "iconLabels" then B:ApplyLayout() end
   B:Refresh()
 end)

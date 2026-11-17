@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.1 (2026-11-17)
+- Short labels over the icons: Bag, Fire, Rested and XP. Turn them off in Settings → Icon labels.
+
 ## 0.6.0 (2026-11-17)
 - New fourth icon: XP food. It shows Well Fed from Nutritious food (+5% experience from kills) with its time left. Food without the XP bonus doesn't count.
 - Without the buff, click the icon to eat your best Nutritious food. With none in your bags, it says "No food".

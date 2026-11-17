@@ -29,6 +29,8 @@ local LAYOUT = {
       tip = "Well-Rested (or your sleeping bag), Camp Benefits and Boosted Rest, like your buff bar. Changes wait until you leave combat." },
     { kind = "check", key = "framed",  label = "Name and border",
       tip = "Show \"Toasty\" above the icons, in a panel with a border. Changes wait until you leave combat." },
+    { kind = "check", key = "iconLabels", label = "Icon labels",
+      tip = "Show Bag, Fire, Rested and XP over the icons. Changes wait until you leave combat." },
     { kind = "check", key = "locked",  label = "Lock position",
       tip = "When unlocked, Shift-drag an icon to move them." },
     { kind = "slider", key = "scale", label = "Size", min = 70, max = 150, step = 5, suffix = "%" },
