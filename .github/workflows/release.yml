@@ -1,0 +1,89 @@
+# Publishes a GitHub release whenever the version in Toasty.toc changes.
+#
+# Push a commit that bumps "## Version: X.Y.Z" in Toasty.toc (and adds the
+# "## X.Y.Z (date)" section to CHANGELOG.md): this workflow then
+#   1. skips if release vX.Y.Z already exists,
+#   2. zips the addon as Toasty/ (git archive: files marked export-ignore in
+#      .gitattributes, like .github and CLAUDE.md, are left out),
+#   3. creates tag and release vX.Y.Z with Toasty-vX.Y.Z.zip attached and
+#      that version's CHANGELOG section as the notes.
+# WoWUp installs from the latest release's zip.
+# Run it by hand from the Actions tab (Run workflow) to release the current
+# version again after a failure.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [Toasty.toc]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version from Toasty.toc
+        id: v
+        run: |
+          v=$(sed -n 's/^## Version:[[:space:]]*//p' Toasty.toc | tr -d '\r[:space:]')
+          if [ -z "$v" ]; then echo "No '## Version:' line in Toasty.toc" >&2; exit 1; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if this version is already released
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          if gh release view "v$V" >/dev/null 2>&1; then
+            echo "Release v$V already exists, nothing to do."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the zip
+        if: steps.check.outputs.exists == 'false'
+        env:
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          mkdir -p dist/Toasty
+          git archive HEAD | tar -x -C dist/Toasty
+          (cd dist && zip -qr "Toasty-v$V.zip" Toasty)
+          unzip -l "dist/Toasty-v$V.zip"
+
+      - name: Write the release notes
+        if: steps.check.outputs.exists == 'false'
+        env:
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          # This version's CHANGELOG section, without its heading.
+          awk -v v="$V" '
+            $0 ~ "^## " v "([[:space:]]|$)" { on = 1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then echo "Toasty v$V" > notes.md; fi
+          cat >> notes.md <<NOTES
+
+          ### Install
+          Extract the \`Toasty\` folder from \`Toasty-v$V.zip\` into \`World of Warcraft\\_forever_\\Interface\\AddOns\\\` (copy it; don't symlink it), then restart the game or \`/reload\`. Or install from this repository in WoWUp.
+          NOTES
+          sed -i 's/^          //' notes.md
+          cat notes.md
+
+      - name: Create the release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          gh release create "v$V" "dist/Toasty-v$V.zip" \
+            --title "Toasty v$V" \
+            --notes-file notes.md \
+            --target "$GITHUB_SHA"
