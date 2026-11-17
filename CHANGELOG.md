@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.0 (2026-11-17)
+- When all four icons are lit, "Toasty" turns red with a little campfire on each side. The demo's first step shows it.
+
 ## 0.6.3 (2026-11-17)
 - Labels are now Bag, Buffs, Rest and 5% XP, and the icons are back to their closer spacing.
 

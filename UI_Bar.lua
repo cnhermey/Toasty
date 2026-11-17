@@ -185,6 +185,19 @@ local function Build()
   f.title:SetPoint("TOP", f, "TOP", 0, -PAD_TOP)
   f.title:SetText("Toasty")
 
+  -- All four lit: a small campfire icon on each side of the name.
+  local FIRE = UI.SpellIcon(1229737, "Interface\\Icons\\Spell_Fire_Fire")  -- Basic Campfire
+  f.fires = {}
+  for i, side in ipairs({ { "RIGHT", "LEFT", -4 }, { "LEFT", "RIGHT", 4 } }) do
+    local t = f:CreateTexture(nil, "OVERLAY")
+    t:SetSize(14, 14)
+    t:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    t:SetTexture(FIRE)
+    t:SetPoint(side[1], f.title, side[2], side[3], 0)
+    t:Hide()
+    f.fires[i] = t
+  end
+
   B.slots[1] = MakeSlot(f, "ToastyBagButton")
   B.slots[2] = MakeSlot(f, false)
   B.slots[2]:SetPoint("TOPLEFT", B.slots[1], "TOPRIGHT", GAP, 0)
@@ -342,6 +355,19 @@ end
 -- Old name, for the probe: does the bag button use the bag?
 function B:BagArmed() return self.actions[1] == ns.Status.BAG_ITEM end
 
+-- "Toasty!": when all four icons are lit (Well-Rested, Camp Benefits,
+-- Boosted Rest, XP food), the name turns red with a campfire on each side.
+-- Read from Toasty's own buff state, also when the game draws the icons.
+function B:ApplyToasty(s, food)
+  local f = self.frame
+  local all = s.wellRested and s.benefits and s.boosted and food and true or false
+  local c = all and UI.RED or UI.GOLD
+  f.title:SetTextColor(c.r, c.g, c.b)
+  local show = all and ns.db.framed
+  for _, t in ipairs(f.fires) do t:SetShown(show) end
+  self.toasty = all
+end
+
 function B:Refresh()
   if not self.frame then return end
   local S = ns.Status
@@ -380,6 +406,8 @@ function B:Refresh()
 
   Paint(self.slots[2], CampView(s))
   Paint(self.slots[3], RestView(s))
+
+  self:ApplyToasty(ns.Demo.active and ns.Demo.s or S.s, ns.Demo.active and ns.Demo.s.food or F.s)
 
   local v4 = FoodView(food, bagFood)
   Paint(self.slots[4], v4)

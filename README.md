@@ -1,4 +1,4 @@
-# Toasty (v0.6.3)
+# Toasty (v0.7.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -13,6 +13,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - **Icon 4: XP food.** Well Fed from **Nutritious** food (+5% experience from kills, 15 minutes), with its time left. Well Fed from food without the XP bonus doesn't count.
   - **No XP food buff?** The icon becomes your best Nutritious food (the highest level you can eat): click it to eat. It shows how many you have.
   - **No Nutritious food?** A gray Well Fed icon that says "No food".
+- **Fully toasty.** When all four icons are lit (Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
 - **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with.
 - **Settings** in Esc → Options → AddOns → Toasty (or `/toasty`).
 
