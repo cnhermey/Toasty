@@ -2,7 +2,7 @@
 ## Title: Toasty
 ## Notes: Camping status icons (Well-Rested, Camp Benefits, Boosted Rest) and tooltips for camp objects.
 ## Author: cnhermey
-## Version: 0.4.0
+## Version: 0.4.1
 ## SavedVariables: ToastyDB
 ## Category: Buffs
 ## IconTexture: Interface\Icons\Spell_Fire_Fire

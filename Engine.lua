@@ -15,9 +15,10 @@
 --      top | Boosted Rest
 -- Rules from the engine (see EllesmereUI_AuraKit.lua): set up the slot's
 -- button only inside its initializeFrame callback (later calls are refused
--- while auras are secret), never write fields on the button, give it a size
--- (an unsized button draws nothing), and give font strings a font before
--- registering them. Clicks are turned off on the engine buttons, so a click
+-- while auras are secret), never write fields on the button, and give font
+-- strings a font before registering them. The engine doesn't place a slot's
+-- button: anchor it yourself in that callback (EllesmereUI does
+-- button:SetAllPoints(proxy)), or it draws nowhere (0.4.0's bug). Clicks are turned off on the engine buttons, so a click
 -- or Shift-drag goes through to Toasty's icon underneath; hovering shows the
 -- game's own buff tooltip.
 -- When the client has no aura containers, Toasty falls back to its own
@@ -27,7 +28,6 @@ local _, ns = ...
 local E = { layers = {}, buttons = 0, errors = {} }
 ns.Engine = E
 
-local SIZE = 30
 
 -- Which engine slots sit on which icon, bottom to top.
 local LAYERS = {
@@ -80,10 +80,12 @@ end
 ---------------------------------------------------------------------------
 -- The slot button's look, set once inside the engine's creation window.
 ---------------------------------------------------------------------------
-local function Init(button)
+local function Init(button, host)
   E.buttons = E.buttons + 1
   local ok, err = pcall(function()
-    button:SetSize(SIZE, SIZE)
+    -- Two-point anchors: the button covers Toasty's icon, and follows it.
+    button:ClearAllPoints()
+    button:SetAllPoints(host)
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetAllPoints(button)
     -- Text above the icon, never under it.
@@ -135,7 +137,7 @@ function E:Build()
       c:SetFrameLevel(host:GetFrameLevel() + 3 + i)
       c:AddAuraSlot(L.key, L.filter, {
         candidateFilters = { includeSpellIDs = IDs(L.key) },
-        initializeFrame = Init,
+        initializeFrame = function(button) Init(button, host) end,
       })
       c:SetUnit("player")
       c:UpdateAllAuras()
@@ -150,6 +152,7 @@ function E:Build()
   end
   self.built = true
   self.reason = nil
+  Apply()
   ns.Fire("STATUS_CHANGED")
 end
 
@@ -164,7 +167,12 @@ end
 
 -- True when the game draws the buffs (Toasty only paints the idle icons).
 function E:Active()
-  return self.built == true and not ns.Demo.active
+  return self.built == true and ns.db.engine and not ns.Demo.active
+end
+
+local function Apply()
+  if not E.built then return end
+  if ns.db.engine and not ns.db.demo then E:Show() else E:Teardown() end
 end
 
 ns.Listen("LOGIN", function()
@@ -173,6 +181,5 @@ ns.Listen("LOGIN", function()
 end)
 
 ns.Listen("SETTINGS_CHANGED", function(key)
-  if key ~= "demo" or not E.built then return end
-  if ns.db.demo then E:Teardown() else E:Show() end
+  if key == "demo" or key == "engine" then Apply() end
 end)

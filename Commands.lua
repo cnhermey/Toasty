@@ -55,7 +55,8 @@ local function Probe()
   local En = ns.Engine
   local errs = {}
   for where, err in pairs(En.errors) do errs[#errs + 1] = where .. ": " .. err end
-  P("  Game-drawn buffs (aura containers): " .. (En.built and Yes("on") or No("off"))
+  P("  Game-drawn buffs (aura containers): " .. (En.built and Yes("built") or No("not built"))
+    .. " · setting " .. (ns.db.engine and "on" or Gray("off"))
     .. (En.reason and (" · " .. En.reason) or "")
     .. " · layers " .. #En.layers .. " · buttons made " .. En.buttons
     .. (#errs > 0 and (" · errors " .. No(table.concat(errs, "; "))) or ""))

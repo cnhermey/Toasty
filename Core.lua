@@ -67,6 +67,7 @@ ns.DEFAULTS = {
   scale = 100,             -- icon bar size in percent
   barPoint = nil,          -- { point, relPoint, x, y } after a Shift-drag
   objectTips = true,       -- explain camp objects when you hover them in the world
+  engine = true,           -- let the game draw the buffs (works in combat)
   learned = {},            -- spell IDs seen on this client, by our key
   demo = false,            -- demo icons; always off after a reload
   debug = false,

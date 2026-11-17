@@ -38,6 +38,8 @@ local LAYOUT = {
       tip = "When you hover a camp object or campfire in the world, its tooltip says what it does." },
     { kind = "button", label = "Test tooltip", width = 110, onClick = function() ns.Objects:Test("Enchanted Lute") end },
     { header = "Testing" },
+    { kind = "check", key = "engine", label = "Game-drawn buffs",
+      tip = "The game draws the buffs on the icons, so they stay right in combat. Turn off to let Toasty draw them itself (they can't be read in combat then)." },
     { kind = "check", key = "demo",  label = "Demo icons",
       tip = "Cycles the icons through every state. Turns off after a reload." },
     { kind = "check", key = "debug", label = "Debug messages" },

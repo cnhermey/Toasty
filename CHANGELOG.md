@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 (2026-11-17)
+- Fixed: buffs didn't show at all in 0.4.0. The game-drawn icons now sit on Toasty's icons.
+- New setting: Testing → Game-drawn buffs. Turn it off to have Toasty draw the buffs itself.
+
 ## 0.4.0 (2026-11-17)
 - The buff icons are now drawn by the game itself, the way EllesmereUI draws buffs, so they stay accurate in combat: they light up, count down and go gray exactly as the buffs come and go, even mid-fight.
 - Hovering a lit icon shows the game's own buff tooltip.
