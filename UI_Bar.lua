@@ -8,6 +8,10 @@
 --      else a gray Camp Benefits icon.
 --   3. Boosted Rest (the Camp Tent's cooldown debuff). Without it: a gray
 --      Boosted Rest icon, meaning a Camp Tent can give you rested XP again.
+-- With aura containers (Engine.lua), the game draws the buffs over these
+-- icons, in combat too; this file then paints only the idle state under
+-- them (bag button, "No bag", gray icons). Without them, it paints
+-- everything from Status.lua.
 -- Icon 1 is a SecureActionButton (using an item needs one), so this bar is
 -- a protected frame: its position, size, visibility and the button's click
 -- action only change out of combat (queued with ns.AfterCombat). Icons and
@@ -125,6 +129,11 @@ local function MakeSlot(parent, secure)
   b.count:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -2, 2)
   b.duration = b:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   b.duration:SetPoint("TOP", b, "BOTTOM", 0, -2)
+  -- "No bag" sits on the icon, so a buff drawn over it by the game hides it.
+  b.label = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmallOutline")
+  b.label:SetPoint("CENTER", b, "CENTER", 0, 0)
+  b.label:SetWidth(SIZE + 4)
+  b.label:SetTextColor(0.8, 0.8, 0.8)
   b:SetScript("OnEnter", SlotTooltip)
   b:SetScript("OnLeave", function() GameTooltip:Hide() end)
   b:RegisterForDrag("LeftButton")
@@ -233,9 +242,9 @@ local function Paint(slot, v)
   slot.icon:SetDesaturated(v.gray and true or false)
   slot.icon:SetVertexColor(v.gray and 0.6 or 1, v.gray and 0.6 or 1, v.gray and 0.6 or 1)
   slot.count:SetText(v.stacks and v.stacks > 1 and v.stacks or "")
+  slot.label:SetText(v.text or "")
   if v.text then
-    slot.duration:SetText(v.text)
-    slot.duration:SetTextColor(UI.GRAY.r, UI.GRAY.g, UI.GRAY.b)
+    slot.duration:SetText("")
   elseif v.left then
     slot.duration:SetText(ns.BuffTime(v.left) or "")
     local c = v.left < WARN and UI.WHITE or UI.GOLD
@@ -266,6 +275,8 @@ function B:Refresh()
   local S = ns.Status
   local s = ns.Demo.active and ns.Demo.s or S.s
   local bags = ns.Demo.active and (ns.Demo.bags or 0) or S.bagCount
+  -- The game draws the buffs itself: paint only what lies under them.
+  if ns.Engine and ns.Engine:Active() then s = {} end
 
   local real = SleepView(S.s, S.bagCount)
   self:ApplyAction(real.useBag == true)

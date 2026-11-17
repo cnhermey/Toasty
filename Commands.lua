@@ -28,7 +28,8 @@ local function Probe()
     "GameTooltip.SetUnitDebuffByAuraInstanceID",
     "C_Item.GetItemCount", "C_Container.GetItemCooldown", "C_Spell.GetSpellTexture",
     "SecondsToTimeAbbrev", "TooltipDataProcessor.AddTooltipPostCall", "Enum.TooltipDataType.Object",
-    "issecretvalue", "Settings.RegisterCanvasLayoutCategory", "MinimalSliderWithSteppersMixin",
+    "issecretvalue", "C_StringUtil.CreateNumericRuleFormatter", "C_AddOns.LoadAddOn",
+    "Settings.RegisterCanvasLayoutCategory", "MinimalSliderWithSteppersMixin",
   }
   local line = {}
   for _, name in ipairs(apis) do
@@ -51,6 +52,13 @@ local function Probe()
       .. " · " .. def.id .. (learned and learned ~= def.id and (" learned " .. learned) or "") .. " · " .. now)
   end
 
+  local En = ns.Engine
+  local errs = {}
+  for where, err in pairs(En.errors) do errs[#errs + 1] = where .. ": " .. err end
+  P("  Game-drawn buffs (aura containers): " .. (En.built and Yes("on") or No("off"))
+    .. (En.reason and (" · " .. En.reason) or "")
+    .. " · layers " .. #En.layers .. " · buttons made " .. En.buttons
+    .. (#errs > 0 and (" · errors " .. No(table.concat(errs, "; "))) or ""))
   P("  Combat: in combat " .. tostring(InCombatLockdown() and true or false)
     .. " · by-ID lookup worked in combat " .. (S.byIDInCombat and Yes("yes") or Gray("not yet"))
     .. " · unreadable auras last scan " .. S.seen.unreadable

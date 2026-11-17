@@ -1,4 +1,4 @@
-# Toasty (v0.3.1)
+# Toasty (v0.4.0)
 
 Your camping status in WoW: Forever, as three icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -22,8 +22,9 @@ Your camping status in WoW: Forever, as three icons that look like your buff bar
 
 ### Combat and secret values
 - Using an item needs a secure button, so the icon bar is protected: moving it, resizing it, showing or hiding it and switching icon 1 between "buff" and "use bag" wait until you leave combat. The icons and times still update in combat.
-- In combat, Forever hides which buff is which from addons. Toasty asks for each of its buffs directly by spell ID, which should still work. If it can't tell, a buff you had when the fight started stays lit and keeps counting down from the time Toasty already knew; it goes gray when that time runs out or after combat if it's gone.
-- A buff you gain during combat may show without its time until combat ends. Toasty never guesses a time.
+- In combat, Forever hides which buff is which from addons. So the buffs themselves are drawn by the game: each icon has an engine aura slot (the 12.1 aura containers, as EllesmereUI uses them) that the game fills with the matching buff, with its icon, stacks and countdown, in or out of combat. Toasty only draws what lies under it: the sleeping bag button, "No bag", and the gray icons.
+- Hovering a lit icon shows the game's own buff tooltip. Clicks and Shift-drag go through to Toasty's icon underneath.
+- On a client without aura containers, Toasty reads the buffs itself: it asks for each by spell ID, and if it can't tell in combat it keeps the last known state and counts down from the time it knew.
 
 ## Install
 1. Copy the `Toasty` folder to `World of Warcraft\_forever_\Interface\AddOns\`.
@@ -57,6 +58,7 @@ Your camping status in WoW: Forever, as three icons that look like your buff bar
 | `UI_Common.lua` | Blizzard colors, icons and sounds |
 | `Status.lua` | Reads your buffs and debuffs on `UNIT_AURA` (Well-Rested 429959, Camp Benefits 1229741, Campfire Nearby 1283391, Boosted Rest 1229451) by spell ID and by name, learning new IDs; counts your Cozy Sleeping Bags (item 211527) and reads its cooldown |
 | `Objects.lua` | What every camp object and campfire does; adds it to the game tooltip for world objects (`TooltipDataProcessor` for objects when the client has it, else `GameTooltip` `OnShow` when the tooltip belongs to the world) |
+| `Engine.lua` | Game-drawn buff layers: an `AuraContainer` (`CustomAuraContainerTemplate`) per buff with one aura slot limited to its spell IDs (`candidateFilters.includeSpellIDs`), set up in the slot's `initializeFrame` |
 | `UI_Bar.lua` | The three icons; icon 1 is a `SecureActionButtonTemplate` that uses the bag |
 | `Options.lua` | Settings page in Esc → Options → AddOns, through one setter (`ns.Options:Set`) |
 | `Demo.lua` | The demo icons (`/toasty demo`) |
@@ -67,7 +69,10 @@ Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.
 ## Needs in-game verification
 - That the four buff and debuff IDs are right on the live client. `/toasty probe` "Buffs" lines show each ID, any learned ID, and red "(name not from client)" if the client didn't know it.
 - That Well-Rested has stacks (probe "stacks").
-- That `C_UnitAuras.GetPlayerAuraBySpellID` finds the buffs in combat: run `/toasty probe` during a fight. "by-ID lookup worked in combat yes" means icons stay exact in combat; "not yet" with "kept" buffs means Toasty is holding the last known state.
+- That the game-drawn layers work: probe "Game-drawn buffs: on", with 4 layers and 4 buttons made, no errors; the icons stay lit in combat.
+- That the Boosted Rest slot works for a debuff (`HARMFUL` with `includeSpellIDs`; EllesmereUI only uses it for buffs).
+- That the countdown under the game-drawn icons reads like the buff bar ("12 m"). It stays gold under a minute (the white warning color is Toasty's own and not on these).
+- Fallback only: that `C_UnitAuras.GetPlayerAuraBySpellID` finds the buffs in combat: run `/toasty probe` during a fight. "by-ID lookup worked in combat yes" means icons stay exact in combat; "not yet" with "kept" buffs means Toasty is holding the last known state.
 - That Boosted Rest is a debuff with a timer, and that you can get rested XP from a tent again once it's gone (icon 3 gray).
 - That clicking the bag icon uses the bag once, not twice or never. Probe shows "button uses bag" and your "cast on key down" setting.
 - That camp objects show a tooltip when hovered at all (some world objects don't), and that the tooltip's first line is the object's plain name. Probe "Object tooltips" shows how many were explained, and the title of the last world tooltip that wasn't a known object, so a different name can be added.

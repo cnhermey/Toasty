@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 (2026-11-17)
+- The buff icons are now drawn by the game itself, the way EllesmereUI draws buffs, so they stay accurate in combat: they light up, count down and go gray exactly as the buffs come and go, even mid-fight.
+- Hovering a lit icon shows the game's own buff tooltip.
+- "No bag" now sits on the gray bag icon.
+
 ## 0.3.1 (2026-11-17)
 - Fixed: the icons no longer turn gray in combat. Your buffs stay lit and keep counting down during a fight.
 
