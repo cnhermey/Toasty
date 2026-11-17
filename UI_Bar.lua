@@ -1,4 +1,4 @@
--- Toasty: the icon bar. Three icons in a row, drawn like the icons on
+-- Toasty: the icon bar. Four icons in a row, drawn like the icons on
 -- Blizzard's buff bar: 30 px icon, stack count in NumberFontNormal at the
 -- bottom right, time left under the icon in GameFontNormalSmall (gold, white
 -- under a minute, written by Blizzard's own SecondsToTimeAbbrev).
@@ -8,11 +8,13 @@
 --      else a gray Camp Benefits icon.
 --   3. Boosted Rest (the Camp Tent's cooldown debuff). Without it: a gray
 --      Boosted Rest icon, meaning a Camp Tent can give you rested XP again.
+--   4. Well Fed from Nutritious food (+5% XP). Without it: a button that
+--      eats your best Nutritious food; without food, "No food".
 -- With aura containers (Engine.lua), the game draws the buffs over these
 -- icons, in combat too; this file then paints only the idle state under
 -- them (bag button, "No bag", gray icons). Without them, it paints
 -- everything from Status.lua.
--- Icon 1 is a SecureActionButton (using an item needs one), so this bar is
+-- Icons 1 and 4 are SecureActionButtons (using an item needs one), so this bar is
 -- a protected frame: its position, size, visibility and the button's click
 -- action only change out of combat (queued with ns.AfterCombat). Icons and
 -- text are plain textures and font strings, so they update in combat.
@@ -31,7 +33,8 @@ local PAD_TOP = 9      -- above the name
 local TITLE_H = 14     -- the name's line
 local TITLE_GAP = 5    -- name to icons
 local PAD_BOTTOM = 6   -- under the time text
-local ROW_W = SIZE * 3 + GAP * 2
+local COUNT = 4
+local ROW_W = SIZE * COUNT + GAP * (COUNT - 1)
 local WARN = BUFF_DURATION_WARNING_TIME or 60   -- white text under a minute
 
 ---------------------------------------------------------------------------
@@ -126,7 +129,7 @@ end
 local function MakeSlot(parent, secure)
   local b
   if secure then
-    b = CreateFrame("Button", "ToastyBagButton", parent, "SecureActionButtonTemplate")
+    b = CreateFrame("Button", secure, parent, "SecureActionButtonTemplate")
     -- Down and up: the secure template picks the one that matches the
     -- "cast on key down" setting, so the bag is used once.
     b:RegisterForClicks("AnyUp", "AnyDown")
@@ -176,11 +179,13 @@ local function Build()
   f.title:SetPoint("TOP", f, "TOP", 0, -PAD_TOP)
   f.title:SetText("Toasty")
 
-  B.slots[1] = MakeSlot(f, true)
+  B.slots[1] = MakeSlot(f, "ToastyBagButton")
   B.slots[2] = MakeSlot(f, false)
   B.slots[2]:SetPoint("TOPLEFT", B.slots[1], "TOPRIGHT", GAP, 0)
   B.slots[3] = MakeSlot(f, false)
   B.slots[3]:SetPoint("TOPLEFT", B.slots[2], "TOPRIGHT", GAP, 0)
+  B.slots[4] = MakeSlot(f, "ToastyFoodButton")
+  B.slots[4]:SetPoint("TOPLEFT", B.slots[3], "TOPRIGHT", GAP, 0)
 
   -- Time left: redraw twice a second, like the buff bar.
   local acc = 0
@@ -261,6 +266,29 @@ local function RestView(s)
   }
 end
 
+-- Icon 4: the XP food buff (Well Fed from Nutritious food). Without it, a
+-- button that eats your best Nutritious food; without food, "No food".
+local function FoodView(buff, bag)
+  local F = ns.Food
+  local hint = "Nutritious food: Well Fed with +5% experience from kills for 15 minutes."
+  if buff then
+    return {
+      icon = buff.icon or F:Icon(), left = ns.Status:Left(buff), instance = buff.instance,
+      filter = "HELPFUL", spell = buff.id or F.WELL_FED, title = F:Name(),
+    }
+  end
+  if bag then
+    return {
+      icon = bag.icon or F:Icon(), item = bag.item, stacks = bag.count, useItem = bag.item,
+      title = bag.name or "Nutritious food", hint = "Click to eat it. " .. hint,
+    }
+  end
+  return {
+    icon = F:Icon(), gray = true, text = "No food", spell = F.WELL_FED,
+    title = F:Name(), hint = "No Nutritious food in your bags. " .. hint,
+  }
+end
+
 local function Paint(slot, v)
   slot.view = v
   slot.icon:SetTexture(v.icon)
@@ -279,33 +307,48 @@ local function Paint(slot, v)
   end
 end
 
--- The bag button's click action follows what icon 1 shows (out of combat).
-function B:ApplyAction(useBag)
-  if self.useBag == useBag then return end
-  ns.AfterCombat("action", function()
-    local b = self.slots[1]
-    if useBag then
+-- A secure icon's click action (icons 1 and 4) follows what it shows: use
+-- this item, or nothing. Out of combat only.
+B.actions = {}
+function B:ApplyAction(index, itemID)
+  itemID = itemID or false
+  if self.actions[index] == itemID then return end
+  ns.AfterCombat("action" .. index, function()
+    local b = self.slots[index]
+    if itemID then
       b:SetAttribute("type", "item")
-      b:SetAttribute("item", "item:" .. ns.Status.BAG_ITEM)
+      b:SetAttribute("item", "item:" .. itemID)
     else
       b:SetAttribute("type", nil)
       b:SetAttribute("item", nil)
     end
-    self.useBag = useBag
+    self.actions[index] = itemID
   end)
 end
+-- Old name, for the probe: does the bag button use the bag?
+function B:BagArmed() return self.actions[1] == ns.Status.BAG_ITEM end
 
 function B:Refresh()
   if not self.frame then return end
   local S = ns.Status
   local s = ns.Demo.active and ns.Demo.s or S.s
   local bags = ns.Demo.active and (ns.Demo.bags or 0) or S.bagCount
+  local F = ns.Food
+  local food = ns.Demo.active and ns.Demo.s.food or F.s
+  local bagFood = ns.Demo.active and ns.Demo.bagFood or F.bag
   -- The game draws the buffs itself: paint only what lies under them.
-  -- Boosted Rest (a debuff) is still Toasty's to draw.
-  if ns.Engine and ns.Engine:Active() then s = { boosted = s.boosted } end
+  -- Boosted Rest (a debuff) is still Toasty's to draw, and the food buff
+  -- until a food layer exists (its spell IDs are learned on first sight).
+  local engine = ns.Engine and ns.Engine:Active()
+  if engine then
+    s = { boosted = s.boosted }
+    if ns.Engine:HasFood() then food = nil end
+  end
 
   local real = SleepView(S.s, S.bagCount)
-  self:ApplyAction(real.useBag == true)
+  self:ApplyAction(1, real.useBag and S.BAG_ITEM or nil)
+  local realFood = FoodView(F.s, F.bag)
+  self:ApplyAction(4, realFood.useItem)
 
   local v1 = SleepView(s, bags)
   Paint(self.slots[1], v1)
@@ -323,6 +366,15 @@ function B:Refresh()
 
   Paint(self.slots[2], CampView(s))
   Paint(self.slots[3], RestView(s))
+
+  local v4 = FoodView(food, bagFood)
+  Paint(self.slots[4], v4)
+  ClearCooldown(self.slots[4].cooldown)
+  if v4.useItem and not ns.Demo.active and C_Container and C_Container.GetItemCooldown then
+    local start, duration = ns.Try("GetItemCooldown", C_Container.GetItemCooldown, v4.useItem)
+    start, duration = ns.Num(start), ns.Num(duration)
+    if start and duration and duration > 1.5 then self.slots[4].cooldown:SetCooldown(start, duration) end
+  end
 end
 
 ns.Listen("LOGIN", function()

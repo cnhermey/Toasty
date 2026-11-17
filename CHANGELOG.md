@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 (2026-11-17)
+- New fourth icon: XP food. It shows Well Fed from Nutritious food (+5% experience from kills) with its time left. Food without the XP bonus doesn't count.
+- Without the buff, click the icon to eat your best Nutritious food. With none in your bags, it says "No food".
+- The demo shows the food icon too.
+
 ## 0.5.0 (2026-11-17)
 - The icons now sit in a bordered panel with "Toasty" centered above them. Turn it off in Settings → Name and border.
 - Shift-drag the panel itself to move it, not only the icons.

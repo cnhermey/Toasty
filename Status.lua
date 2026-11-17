@@ -88,6 +88,8 @@ local function EachAura(filter, fn)
   end
 end
 
+-- Read is defined below; Food.lua uses it too (S.ReadAura).
+
 -- Ask for one buff by its known IDs. Returns the aura and the ID asked for.
 local function ByID(key)
   if not (C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID) then return nil end
@@ -114,6 +116,8 @@ local function Read(a, prev)
   if r.duration == 0 then r.expires = nil end   -- doesn't run out
   return r
 end
+
+S.ReadAura = Read
 
 function S:Scan()
   if not ns.db then return end

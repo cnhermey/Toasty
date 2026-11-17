@@ -15,6 +15,9 @@
 --      top. Icon 3 (Boosted Rest) has none: a debuff slot didn't show in
 --      game (EllesmereUI only uses includeSpellIDs for buffs, which "pass the
 --      identity gate"), so Toasty draws it itself from Status.lua.
+--      Icon 4: the XP food buff, limited to the Well Fed spell IDs Food.lua
+--      has learned give XP. Built again (a new container; engine buttons
+--      are never freed) when a new one is learned; none until the first.
 -- Rules from the engine (see EllesmereUI_AuraKit.lua): set up the slot's
 -- button only inside its initializeFrame callback (later calls are refused
 -- while auras are secret), never write fields on the button, and give font
@@ -153,6 +156,7 @@ function E:Build()
   end
   self.built = true
   self.reason = nil
+  self:BuildFood()
   Apply()
   ns.Fire("STATUS_CHANGED")
 end
@@ -160,11 +164,42 @@ end
 -- Hide the engine layers (demo, or a failed build). Shown again by Show.
 function E:Teardown()
   for _, c in pairs(self.layers) do pcall(c.Hide, c) end
+  if self.food then pcall(self.food.Hide, self.food) end
 end
 
 function E:Show()
   for _, c in pairs(self.layers) do pcall(c.Show, c) end
+  if self.food then pcall(self.food.Show, self.food) end
 end
+
+-- The food layer: one slot for the learned XP Well Fed spell IDs.
+function E:BuildFood()
+  if not self.built then return end
+  local set, any = {}, false
+  for id in pairs(ns.Food:XPFoodIDs()) do set[id] = true; any = true end
+  if not any then return end
+  local host = ns.Bar.slots[4]
+  local made, err = pcall(function()
+    local c = CreateFrame("AuraContainer", nil, host, "CustomAuraContainerTemplate")
+    c:SetPoint("CENTER", host, "CENTER", 0, 0)
+    c:SetSize(1, 1)
+    c:SetFrameLevel(host:GetFrameLevel() + 4)
+    c:AddAuraSlot("food", "HELPFUL", {
+      candidateFilters = { includeSpellIDs = set },
+      initializeFrame = function(button) Init(button, host) end,
+    })
+    c:SetUnit("player")
+    c:UpdateAllAuras()
+    if self.food then pcall(self.food.Hide, self.food) end
+    self.food = c
+    self.foodBuilds = (self.foodBuilds or 0) + 1
+  end)
+  if not made then Fail("build food", err) end
+  if self.food and not (ns.db.engine and not ns.db.demo) then pcall(self.food.Hide, self.food) end
+  ns.Fire("STATUS_CHANGED")
+end
+
+function E:HasFood() return self.food ~= nil end
 
 -- True when the game draws the buffs (Toasty only paints the idle icons).
 function E:Active()
@@ -179,6 +214,11 @@ end
 ns.Listen("LOGIN", function()
   -- After the icons exist (UI_Bar builds on LOGIN, earlier in the TOC).
   C_Timer.After(0, function() E:Build() end)
+end)
+
+ns.Listen("XPFOOD_LEARNED", function()
+  -- Out of the aura event that taught it.
+  C_Timer.After(0, function() E:BuildFood() end)
 end)
 
 ns.Listen("SETTINGS_CHANGED", function(key)

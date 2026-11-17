@@ -58,7 +58,7 @@ local function Probe()
   P("  Game-drawn buffs (aura containers): " .. (En.built and Yes("built") or No("not built"))
     .. " · setting " .. (ns.db.engine and "on" or Gray("off"))
     .. (En.reason and (" · " .. En.reason) or "")
-    .. " · layers " .. #En.layers .. " · buttons made " .. En.buttons
+    .. " · layers " .. #En.layers .. " (+food " .. tostring(En.foodBuilds or 0) .. ") · buttons made " .. En.buttons
     .. (#errs > 0 and (" · errors " .. No(table.concat(errs, "; "))) or ""))
   P("  Combat: in combat " .. tostring(InCombatLockdown() and true or false)
     .. " · by-ID lookup worked in combat " .. (S.byIDInCombat and Yes("yes") or Gray("not yet"))
@@ -67,8 +67,21 @@ local function Probe()
   local start, duration = S:BagCooldown()
   P("  Cozy Sleeping Bag: " .. S.bagCount .. " in bags · cooldown "
     .. ((start and duration and duration > 1.5) and ns.Duration(start + duration - GetTime()) or "none")
-    .. " · button " .. (B.useBag and Yes("uses bag") or Gray("does nothing"))
+    .. " · button " .. (B:BagArmed() and Yes("uses bag") or Gray("does nothing"))
     .. " · cast on key down " .. tostring(GetCVar and GetCVar("ActionButtonUseKeyDown")))
+  local Fd = ns.Food
+  local xpIDs = {}
+  for id in pairs(Fd:XPFoodIDs()) do xpIDs[#xpIDs + 1] = tostring(id) end
+  table.sort(xpIDs)
+  local fb = Fd.s
+  P("  XP food: buff " .. (fb and ((fb.kept and ns.UI.Wrap(ns.UI.YELLOW, "kept") or Yes("on")) .. " id " .. tostring(fb.id)
+      .. " · " .. tostring(ns.Duration(S:Left(fb)) or "no end")) or Gray("off"))
+    .. " · XP Well Fed IDs " .. (#xpIDs > 0 and table.concat(xpIDs, ", ") or "none yet")
+    .. " · tooltips checked " .. Fd.seen.checked .. " (XP " .. Fd.seen.xp .. ", not " .. Fd.seen.notXp .. ", unreadable " .. Fd.seen.unreadable .. ")"
+    .. " · game-drawn layer " .. (ns.Engine:HasFood() and Yes("yes") or Gray("no")))
+  P("  Nutritious food: \"" .. tostring(S.SpellName(Fd.NUTRITIOUS) or No("name not loaded")) .. "\" · in bags "
+    .. (Fd.bag and (tostring(Fd.bag.name or Fd.bag.item) .. " x" .. Fd.bag.count) or "none")
+    .. " · button " .. (B.actions[4] and Yes("eats " .. tostring(B.actions[4])) or Gray("does nothing")))
   P("  Object tooltips: hook " .. tostring(O.mode or No("none")) .. " · explained " .. O.seen.shown
     .. " · other world tooltips " .. O.seen.unknown .. " · last other: " .. tostring(O.lastUnknown or "none"))
   P("  Icons shown " .. tostring(B.frame and B.frame:IsShown() or false)
