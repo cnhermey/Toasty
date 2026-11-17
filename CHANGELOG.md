@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.2 (2026-11-17)
+- Fixed: the Boosted Rest icon didn't light up. Toasty now draws it itself, and it stays lit with its time through combat.
+
 ## 0.4.1 (2026-11-17)
 - Fixed: buffs didn't show at all in 0.4.0. The game-drawn icons now sit on Toasty's icons.
 - New setting: Testing → Game-drawn buffs. Turn it off to have Toasty draw the buffs itself.

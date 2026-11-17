@@ -163,7 +163,10 @@ function S:Scan()
       s[key] = Read(found[key], old[key])
       s[key].id = s[key].id or askedID[key]
       s[key].filter = S.AURAS[key].filter
-    elseif blind and old[key] and (old[key].expires == nil or old[key].expires > now) then
+    elseif old[key] and ((blind and (old[key].expires == nil or old[key].expires > now))
+        or (inCombat and old[key].expires and old[key].expires > now)) then
+      -- In combat, a buff or debuff with a known end time that we can't see
+      -- any more is kept until then (Boosted Rest can't end early in a fight).
       local k = {}
       for f, v in pairs(old[key]) do k[f] = v end
       k.kept, k.instance = true, nil   -- the old instance may be gone: spell tooltip instead

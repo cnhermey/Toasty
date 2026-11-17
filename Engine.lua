@@ -12,7 +12,9 @@
 -- Layers, bottom to top, per icon:
 --   1. our idle icon: the sleeping bag button / "No bag" / gray icons
 --   2. engine slot(s): Well-Rested | Campfire Nearby, then Camp Benefits on
---      top | Boosted Rest
+--      top. Icon 3 (Boosted Rest) has none: a debuff slot didn't show in
+--      game (EllesmereUI only uses includeSpellIDs for buffs, which "pass the
+--      identity gate"), so Toasty draws it itself from Status.lua.
 -- Rules from the engine (see EllesmereUI_AuraKit.lua): set up the slot's
 -- button only inside its initializeFrame callback (later calls are refused
 -- while auras are secret), never write fields on the button, and give font
@@ -34,7 +36,6 @@ local LAYERS = {
   { icon = 1, key = "wellRested", filter = "HELPFUL" },
   { icon = 2, key = "nearby",     filter = "HELPFUL" },
   { icon = 2, key = "benefits",   filter = "HELPFUL" },
-  { icon = 3, key = "boosted",    filter = "HARMFUL" },
 }
 
 local function Fail(where, err)

@@ -1,4 +1,4 @@
-# Toasty (v0.4.1)
+# Toasty (v0.4.2)
 
 Your camping status in WoW: Forever, as three icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -22,7 +22,8 @@ Your camping status in WoW: Forever, as three icons that look like your buff bar
 
 ### Combat and secret values
 - Using an item needs a secure button, so the icon bar is protected: moving it, resizing it, showing or hiding it and switching icon 1 between "buff" and "use bag" wait until you leave combat. The icons and times still update in combat.
-- In combat, Forever hides which buff is which from addons. So the buffs themselves are drawn by the game: each icon has an engine aura slot (the 12.1 aura containers, as EllesmereUI uses them) that the game fills with the matching buff, with its icon, stacks and countdown, in or out of combat. Toasty only draws what lies under it: the sleeping bag button, "No bag", and the gray icons.
+- In combat, Forever hides which buff is which from addons. So the buffs themselves are drawn by the game: icons 1 and 2 each have an engine aura slot (the 12.1 aura containers, as EllesmereUI uses them) that the game fills with the matching buff, with its icon, stacks and countdown, in or out of combat. Toasty only draws what lies under it: the sleeping bag button, "No bag", and the gray icons.
+- Boosted Rest (icon 3) is a debuff, which the game-drawn slots don't show, so Toasty draws it itself. In combat it stays lit and counts down from the end time it read before the fight.
 - Hovering a lit icon shows the game's own buff tooltip. Clicks and Shift-drag go through to Toasty's icon underneath.
 - Settings → Testing → **Game-drawn buffs** turns this off, so Toasty draws the buffs itself (exact out of combat, best effort in combat).
 - On a client without aura containers, Toasty reads the buffs itself: it asks for each by spell ID, and if it can't tell in combat it keeps the last known state and counts down from the time it knew.
@@ -70,8 +71,8 @@ Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.
 ## Needs in-game verification
 - That the four buff and debuff IDs are right on the live client. `/toasty probe` "Buffs" lines show each ID, any learned ID, and red "(name not from client)" if the client didn't know it.
 - That Well-Rested has stacks (probe "stacks").
-- That the game-drawn layers work: probe "Game-drawn buffs: built", with 4 layers and 4 buttons made, no errors; the buffs show on the icons, in and out of combat. If they don't, turn off Game-drawn buffs and send the probe.
-- That the Boosted Rest slot works for a debuff (`HARMFUL` with `includeSpellIDs`; EllesmereUI only uses it for buffs).
+- That the game-drawn layers work: probe "Game-drawn buffs: built", with 3 layers and 3 buttons made, no errors; the buffs show on the icons, in and out of combat. If they don't, turn off Game-drawn buffs and send the probe.
+- That icon 3 lights up with Boosted Rest's time out of combat, and stays lit through a fight.
 - That the countdown under the game-drawn icons reads like the buff bar ("12 m"). It stays gold under a minute (the white warning color is Toasty's own and not on these).
 - Fallback only: that `C_UnitAuras.GetPlayerAuraBySpellID` finds the buffs in combat: run `/toasty probe` during a fight. "by-ID lookup worked in combat yes" means icons stay exact in combat; "not yet" with "kept" buffs means Toasty is holding the last known state.
 - That Boosted Rest is a debuff with a timer, and that you can get rested XP from a tent again once it's gone (icon 3 gray).

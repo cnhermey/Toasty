@@ -276,7 +276,8 @@ function B:Refresh()
   local s = ns.Demo.active and ns.Demo.s or S.s
   local bags = ns.Demo.active and (ns.Demo.bags or 0) or S.bagCount
   -- The game draws the buffs itself: paint only what lies under them.
-  if ns.Engine and ns.Engine:Active() then s = {} end
+  -- Boosted Rest (a debuff) is still Toasty's to draw.
+  if ns.Engine and ns.Engine:Active() then s = { boosted = s.boosted } end
 
   local real = SleepView(S.s, S.bagCount)
   self:ApplyAction(real.useBag == true)
