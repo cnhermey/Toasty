@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.3 (2026-11-17)
+- Labels are now Bag, Buffs, Rest and 5% XP, and the icons are back to their closer spacing.
+
 ## 0.6.2 (2026-11-17)
 - Labels renamed: "Rested" is now "Rest XP" and "XP" is now "5% XP". The icons are a little further apart so the longer labels fit.
 

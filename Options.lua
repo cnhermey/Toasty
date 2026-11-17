@@ -30,7 +30,7 @@ local LAYOUT = {
     { kind = "check", key = "framed",  label = "Name and border",
       tip = "Show \"Toasty\" above the icons, in a panel with a border. Changes wait until you leave combat." },
     { kind = "check", key = "iconLabels", label = "Icon labels",
-      tip = "Show Bag, Fire, Rest XP and 5% XP over the icons. Changes wait until you leave combat." },
+      tip = "Show Bag, Buffs, Rest and 5% XP over the icons. Changes wait until you leave combat." },
     { kind = "check", key = "locked",  label = "Lock position",
       tip = "When unlocked, Shift-drag an icon to move them." },
     { kind = "slider", key = "scale", label = "Size", min = 70, max = 150, step = 5, suffix = "%" },

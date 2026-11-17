@@ -1,4 +1,4 @@
-# Toasty (v0.6.2)
+# Toasty (v0.6.3)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -18,7 +18,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 
 ### Looks like Blizzard's UI
 - The icons sit in a tooltip-style panel (Blizzard's tooltip background and border) with "Toasty" in gold above them. Settings → **Name and border** turns the panel off for bare icons.
-- A short label over each icon says what it is: **Bag**, **Fire**, **Rest XP**, **5% XP** (Settings → **Icon labels**).
+- A short label over each icon says what it is: **Bag**, **Buffs**, **Rest**, **5% XP** (Settings → **Icon labels**).
 - The icons are drawn like the buff bar: 30 px icons, the stack count in Blizzard's number font at the bottom right, and the time left under the icon in the buff bar's font, written the same way ("12 m", "45 s"), turning white under a minute.
 - Hovering an icon shows Blizzard's own buff, debuff, item or spell tooltip.
 - The sleeping bag button uses Blizzard's button highlight, pressed look and cooldown swipe.
