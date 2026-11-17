@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 (2026-11-17)
+- The icons now sit in a bordered panel with "Toasty" centered above them. Turn it off in Settings → Name and border.
+- Shift-drag the panel itself to move it, not only the icons.
+
 ## 0.4.2 (2026-11-17)
 - Fixed: the Boosted Rest icon didn't light up. Toasty now draws it itself, and it stays lit with its time through combat.
 

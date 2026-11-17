@@ -1,4 +1,4 @@
-# Toasty (v0.4.2)
+# Toasty (v0.5.0)
 
 Your camping status in WoW: Forever, as three icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -14,6 +14,7 @@ Your camping status in WoW: Forever, as three icons that look like your buff bar
 - **Settings** in Esc → Options → AddOns → Toasty (or `/toasty`).
 
 ### Looks like Blizzard's UI
+- The icons sit in a tooltip-style panel (Blizzard's tooltip background and border) with "Toasty" in gold above them. Settings → **Name and border** turns the panel off for bare icons.
 - The icons are drawn like the buff bar: 30 px icons, the stack count in Blizzard's number font at the bottom right, and the time left under the icon in the buff bar's font, written the same way ("12 m", "45 s"), turning white under a minute.
 - Hovering an icon shows Blizzard's own buff, debuff, item or spell tooltip.
 - The sleeping bag button uses Blizzard's button highlight, pressed look and cooldown swipe.
@@ -37,7 +38,7 @@ Your camping status in WoW: Forever, as three icons that look like your buff bar
 4. Updating from 0.1.0: delete `Camp.lua` and `UI_HUD.lua` from the folder (0.2.0 no longer loads them).
 
 ## First in-game test (solo)
-1. Type `/toasty demo`. The two icons cycle through every state, 5 seconds each. Shift-drag them where you want them. Type `/toasty demo` again to stop.
+1. Type `/toasty demo`. The two icons cycle through every state, 5 seconds each. Shift-drag the panel where you want it. Type `/toasty demo` again to stop.
 2. With a Cozy Sleeping Bag and no Well-Rested, click icon 1: the bag should be used and the icon should turn into Well-Rested with its time.
 3. Stand by a campfire: icon 2 shows Campfire Nearby. `/sit` for a minute: it becomes Camp Benefits with its time.
    With a Camp Tent at the camp, icon 3 lights up as Boosted Rest with its time; without the debuff it stays gray.

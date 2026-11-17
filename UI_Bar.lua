@@ -25,6 +25,13 @@ ns.Bar = B
 local SIZE = 30      -- Blizzard's buff icon size
 local GAP = 6
 local DURATION_H = 14
+-- The panel around the icons (Settings > Name and border).
+local PAD_X = 12       -- left and right of the icons
+local PAD_TOP = 9      -- above the name
+local TITLE_H = 14     -- the name's line
+local TITLE_GAP = 5    -- name to icons
+local PAD_BOTTOM = 6   -- under the time text
+local ROW_W = SIZE * 3 + GAP * 2
 local WARN = BUFF_DURATION_WARNING_TIME or 60   -- white text under a minute
 
 ---------------------------------------------------------------------------
@@ -48,6 +55,15 @@ function B:ApplyLayout()
       f:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -220, -150)
     end
     f:SetScale((ns.db.scale or 100) / 100)
+    -- Name and border: a tooltip-style panel with "Toasty" over the icons.
+    local framed = ns.db.framed
+    local top = framed and (PAD_TOP + TITLE_H + TITLE_GAP) or 0
+    local side = framed and PAD_X or 0
+    f:SetSize(ROW_W + side * 2, top + SIZE + DURATION_H + (framed and PAD_BOTTOM or 0))
+    self.slots[1]:ClearAllPoints()
+    self.slots[1]:SetPoint("TOPLEFT", f, "TOPLEFT", side, -top)
+    UI.Plate(f, framed)
+    f.title:SetShown(framed)
     f:SetShown(ns.db.enabled)
   end)
 end
@@ -143,15 +159,24 @@ local function MakeSlot(parent, secure)
 end
 
 local function Build()
-  local f = CreateFrame("Frame", "ToastyBar", UIParent)
-  f:SetSize(SIZE * 3 + GAP * 2, SIZE + DURATION_H)
+  local f = CreateFrame("Frame", "ToastyBar", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
+  f:SetSize(ROW_W, SIZE + DURATION_H)
   f:SetMovable(true)
   f:SetClampedToScreen(true)
   f:SetFrameStrata("LOW")
+  -- Shift-drag the panel itself, not only the icons.
+  f:EnableMouse(true)
+  f:RegisterForDrag("LeftButton")
+  f:SetScript("OnDragStart", OnDragStart)
+  f:SetScript("OnDragStop", OnDragStop)
   B.frame = f
 
+  -- The name, gold like Blizzard's window titles, centered over the icons.
+  f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  f.title:SetPoint("TOP", f, "TOP", 0, -PAD_TOP)
+  f.title:SetText("Toasty")
+
   B.slots[1] = MakeSlot(f, true)
-  B.slots[1]:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
   B.slots[2] = MakeSlot(f, false)
   B.slots[2]:SetPoint("TOPLEFT", B.slots[1], "TOPRIGHT", GAP, 0)
   B.slots[3] = MakeSlot(f, false)
@@ -306,6 +331,6 @@ ns.Listen("LOGIN", function()
 end)
 ns.Listen("STATUS_CHANGED", function() B:Refresh() end)
 ns.Listen("SETTINGS_CHANGED", function(key)
-  if key == "scale" or key == "enabled" then B:ApplyLayout() end
+  if key == "scale" or key == "enabled" or key == "framed" then B:ApplyLayout() end
   B:Refresh()
 end)

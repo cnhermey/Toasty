@@ -26,6 +26,24 @@ function UI.Wrap(c, text) return "|c" .. Hex(c) .. text .. "|r" end
 UI.ICON = "Interface\\Icons\\Spell_Fire_Fire"
 UI.BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 
+-- A tooltip-style panel (Blizzard's tooltip background and border), as
+-- Familiar's HUD. on = false takes it away again.
+function UI.Plate(frame, on)
+  if not frame.SetBackdrop then return end
+  if on == false then
+    frame:SetBackdrop(nil)
+    return
+  end
+  frame:SetBackdrop({
+    bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 14,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 },
+  })
+  frame:SetBackdropColor(0.06, 0.06, 0.06, 0.85)
+  frame:SetBackdropBorderColor(0.6, 0.6, 0.6, 1)
+end
+
 function UI.PlaySound(kit)
   if PlaySound and SOUNDKIT and SOUNDKIT[kit] then PlaySound(SOUNDKIT[kit]) end
 end

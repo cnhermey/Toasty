@@ -65,6 +65,7 @@ ns.DEFAULTS = {
   enabled = true,          -- show the icon bar
   locked = false,          -- no Shift-drag
   scale = 100,             -- icon bar size in percent
+  framed = true,           -- "Toasty" name and a bordered panel around the icons
   barPoint = nil,          -- { point, relPoint, x, y } after a Shift-drag
   objectTips = true,       -- explain camp objects when you hover them in the world
   engine = true,           -- let the game draw the buffs (works in combat)
