@@ -25,7 +25,7 @@ local B = { slots = {} }
 ns.Bar = B
 
 local SIZE = 30      -- Blizzard's buff icon size
-local GAP = 6
+local GAP = 10        -- room for "Rest XP" and "5% XP" side by side
 local DURATION_H = 14
 -- The panel around the icons (Settings > Name and border).
 local PAD_X = 12       -- left and right of the icons
@@ -34,7 +34,7 @@ local TITLE_H = 14     -- the name's line
 local TITLE_GAP = 5    -- name to icons
 local PAD_BOTTOM = 6   -- under the time text
 local SUB_H = 13       -- the short label over each icon (Settings > Icon labels)
-local SUBHEADS = { "Bag", "Fire", "Rested", "XP" }
+local SUBHEADS = { "Bag", "Fire", "Rest XP", "5% XP" }
 local COUNT = 4
 local ROW_W = SIZE * COUNT + GAP * (COUNT - 1)
 local WARN = BUFF_DURATION_WARNING_TIME or 60   -- white text under a minute
@@ -63,7 +63,7 @@ function B:ApplyLayout()
     -- Name and border: a tooltip-style panel with "Toasty" over the icons.
     local framed = ns.db.framed
     local top = framed and (PAD_TOP + TITLE_H + TITLE_GAP) or 0
-    -- Short labels over the icons ("Bag", "Fire", "Rested", "XP").
+    -- Short labels over the icons ("Bag", "Fire", "Rest XP", "5% XP").
     local subs = ns.db.iconLabels
     if subs then top = top + SUB_H end
     for _, slot in ipairs(self.slots) do slot.subhead:SetShown(subs) end

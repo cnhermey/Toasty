@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.2 (2026-11-17)
+- Labels renamed: "Rested" is now "Rest XP" and "XP" is now "5% XP". The icons are a little further apart so the longer labels fit.
+
 ## 0.6.1 (2026-11-17)
 - Short labels over the icons: Bag, Fire, Rested and XP. Turn them off in Settings → Icon labels.
 
