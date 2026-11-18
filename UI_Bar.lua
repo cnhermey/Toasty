@@ -168,7 +168,7 @@ local function MakeSlot(parent, secure)
 end
 
 local function Build()
-  local f = CreateFrame("Frame", "ToastyBar", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
+  local f = CreateFrame("Frame", "ToastyBuffsBar", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
   f:SetSize(ROW_W, SIZE + DURATION_H)
   f:SetMovable(true)
   f:SetClampedToScreen(true)
@@ -198,12 +198,12 @@ local function Build()
     f.fires[i] = t
   end
 
-  B.slots[1] = MakeSlot(f, "ToastyBagButton")
+  B.slots[1] = MakeSlot(f, "ToastyBuffsBagButton")
   B.slots[2] = MakeSlot(f, false)
   B.slots[2]:SetPoint("TOPLEFT", B.slots[1], "TOPRIGHT", GAP, 0)
   B.slots[3] = MakeSlot(f, false)
   B.slots[3]:SetPoint("TOPLEFT", B.slots[2], "TOPRIGHT", GAP, 0)
-  B.slots[4] = MakeSlot(f, "ToastyFoodButton")
+  B.slots[4] = MakeSlot(f, "ToastyBuffsFoodButton")
   B.slots[4]:SetPoint("TOPLEFT", B.slots[3], "TOPRIGHT", GAP, 0)
 
   -- Each icon's short label, centered over it in Blizzard's small font.

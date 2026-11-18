@@ -1,15 +1,15 @@
-# Publishes a GitHub release whenever the version in Toasty.toc changes.
+# Publishes a GitHub release whenever the version in ToastyBuffs.toc changes.
 #
-# Push a commit that bumps "## Version: X.Y.Z" in Toasty.toc (and adds the
+# Push a commit that bumps "## Version: X.Y.Z" in ToastyBuffs.toc (and adds the
 # "## X.Y.Z (date)" section to CHANGELOG.md): this workflow then
 #   1. skips if release vX.Y.Z already exists,
-#   2. zips the addon as Toasty/ (git archive: files marked export-ignore in
+#   2. zips the addon as ToastyBuffs/ (git archive: files marked export-ignore in
 #      .gitattributes, like .github and CLAUDE.md, are left out),
-#   3. creates tag and release vX.Y.Z with Toasty-vX.Y.Z.zip attached and
+#   3. creates tag and release vX.Y.Z with ToastyBuffs-vX.Y.Z.zip attached and
 #      that version's CHANGELOG section as the notes.
 #   4. uploads the same zip to CurseForge (Forever, game version 1.60.1)
 #      once it's set up: the CF_API_KEY repository secret, and
-#      "## X-Curse-Project-ID: <id>" in Toasty.toc. Until then it skips.
+#      "## X-Curse-Project-ID: <id>" in ToastyBuffs.toc. Until then it skips.
 # WoWUp installs from the latest release's zip.
 # Run it by hand from the Actions tab (Run workflow) to release the current
 # version again after a failure; tick "Upload to CurseForge" to send the
@@ -19,7 +19,7 @@ name: Release
 on:
   push:
     branches: [main]
-    paths: [Toasty.toc]
+    paths: [ToastyBuffs.toc]
   workflow_dispatch:
     inputs:
       curseforge:
@@ -36,11 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read the version from Toasty.toc
+      - name: Read the version from ToastyBuffs.toc
         id: v
         run: |
-          v=$(sed -n 's/^## Version:[[:space:]]*//p' Toasty.toc | tr -d '\r[:space:]')
-          if [ -z "$v" ]; then echo "No '## Version:' line in Toasty.toc" >&2; exit 1; fi
+          v=$(sed -n 's/^## Version:[[:space:]]*//p' ToastyBuffs.toc | tr -d '\r[:space:]')
+          if [ -z "$v" ]; then echo "No '## Version:' line in ToastyBuffs.toc" >&2; exit 1; fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
 
       - name: Skip if this version is already released
@@ -61,10 +61,10 @@ jobs:
         env:
           V: ${{ steps.v.outputs.version }}
         run: |
-          mkdir -p dist/Toasty
-          git archive HEAD | tar -x -C dist/Toasty
-          (cd dist && zip -qr "Toasty-v$V.zip" Toasty)
-          unzip -l "dist/Toasty-v$V.zip"
+          mkdir -p dist/ToastyBuffs
+          git archive HEAD | tar -x -C dist/ToastyBuffs
+          (cd dist && zip -qr "ToastyBuffs-v$V.zip" ToastyBuffs)
+          unzip -l "dist/ToastyBuffs-v$V.zip"
 
       - name: Write the release notes
         if: steps.check.outputs.exists == 'false' || inputs.curseforge
@@ -77,11 +77,11 @@ jobs:
             on && /^## / { exit }
             on { print }
           ' CHANGELOG.md > notes.md
-          if ! grep -q '[^[:space:]]' notes.md; then echo "Toasty v$V" > notes.md; fi
+          if ! grep -q '[^[:space:]]' notes.md; then echo "Toasty Buffs v$V" > notes.md; fi
           cat >> notes.md <<NOTES
 
           ### Install
-          Extract the \`Toasty\` folder from \`Toasty-v$V.zip\` into \`World of Warcraft\\_forever_\\Interface\\AddOns\\\` (copy it; don't symlink it), then restart the game or \`/reload\`. Or install from this repository in WoWUp.
+          Extract the \`ToastyBuffs\` folder from \`ToastyBuffs-v$V.zip\` into \`World of Warcraft\\_forever_\\Interface\\AddOns\\\` (copy it; don't symlink it), then restart the game or \`/reload\`. Or install from this repository in WoWUp.
           NOTES
           sed -i 's/^          //' notes.md
           cat notes.md
@@ -92,8 +92,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           V: ${{ steps.v.outputs.version }}
         run: |
-          gh release create "v$V" "dist/Toasty-v$V.zip" \
-            --title "Toasty v$V" \
+          gh release create "v$V" "dist/ToastyBuffs-v$V.zip" \
+            --title "Toasty Buffs v$V" \
             --notes-file notes.md \
             --target "$GITHUB_SHA"
 
@@ -104,9 +104,9 @@ jobs:
           V: ${{ steps.v.outputs.version }}
           CF_GAME_VERSION: "1.60.1"
         run: |
-          pid=$(sed -n 's/^## X-Curse-Project-ID:[[:space:]]*//p' Toasty.toc | tr -d '\r[:space:]')
+          pid=$(sed -n 's/^## X-Curse-Project-ID:[[:space:]]*//p' ToastyBuffs.toc | tr -d '\r[:space:]')
           if [ -z "$CF_API_KEY" ] || [ -z "$pid" ]; then
-            echo "CurseForge isn't set up yet (needs the CF_API_KEY secret and X-Curse-Project-ID in Toasty.toc). Skipping."
+            echo "CurseForge isn't set up yet (needs the CF_API_KEY secret and X-Curse-Project-ID in ToastyBuffs.toc). Skipping."
             exit 0
           fi
           api=https://wow.curseforge.com/api
@@ -124,11 +124,11 @@ jobs:
             exit 1
           fi
           echo "Game versions: $ids"
-          jq -n --rawfile cl notes.md --arg dn "Toasty v$V" --argjson gv "$ids" \
+          jq -n --rawfile cl notes.md --arg dn "Toasty Buffs v$V" --argjson gv "$ids" \
             '{changelog: $cl, changelogType: "markdown", displayName: $dn, gameVersions: $gv, releaseType: "release"}' > meta.json
           curl -sSf -H "X-Api-Token: $CF_API_KEY" \
             -F "metadata=<meta.json" \
-            -F "file=@dist/Toasty-v$V.zip" \
+            -F "file=@dist/ToastyBuffs-v$V.zip" \
             "$api/projects/$pid/upload-file"
           echo
           echo "Uploaded Toasty v$V to CurseForge project $pid."

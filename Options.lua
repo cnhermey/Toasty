@@ -2,14 +2,14 @@
 --
 -- Every setting is a Blizzard control (UICheckButtonTemplate checkboxes,
 -- MinimalSliderWithSteppers sliders, UIPanelButtonTemplate buttons), and
--- every control writes ToastyDB through Options:Set. Style rules (as Queb,
+-- every control writes ToastyBuffsDB through Options:Set. Style rules (as Queb,
 -- Familiar and Pass the Spleen): native Blizzard look, short labels.
 local _, ns = ...
 
 local O = { pages = {} }
 ns.Options = O
 
-local NAME = "Toasty"
+local NAME = "Toasty Buffs"
 
 -- Central setter: every control goes through here.
 function O:Set(key, value)

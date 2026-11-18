@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0 (2026-11-17)
+- Toasty's folder is now **ToastyBuffs** (it shows as "Toasty Buffs" in your addon list and options), so it can't clash with the other Forever addon called Toasty.
+- Updating by hand: delete the old **Toasty** folder from Interface\AddOns. Addon managers handle it for you. Your settings start fresh unless you copy them over (see the README).
+- `/toasty` and `/toast` still work, and `/toastybuffs` is new.
+
 ## 0.7.2 (2026-11-17)
 - Toasty is now on CurseForge. No changes in game.
 

@@ -8,7 +8,7 @@
 -- and each food has its own Well Fed spell ID. So a Well Fed buff (by name,
 -- Blizzard's food icon 136000, or the food buffs not named Well Fed) counts
 -- only when its tooltip mentions experience; the answer is learned per
--- spell ID (ToastyDB.learned.xpFood / notXpFood), so after the first time a
+-- spell ID (ToastyBuffsDB.learned.xpFood / notXpFood), so after the first time a
 -- food's buff is known by ID, in combat too (and Engine.lua draws it then).
 -- Tooltips and names can't be read in combat (secret values): then only
 -- known IDs are asked for, and a buff with a known end time is kept.

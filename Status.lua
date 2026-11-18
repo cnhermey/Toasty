@@ -7,7 +7,7 @@
 --   * Cozy Sleeping Bag (item 211527): how many are in your bags.
 -- Forever quirks: spell IDs may differ from the guides, so each buff is
 -- matched by ID *and* by its name, and an ID seen by name is learned into
--- ToastyDB.learned.
+-- ToastyBuffsDB.learned.
 -- Combat: Forever makes aura IDs, names, times and stacks secret, so a scan
 -- by index can't tell which buff is which (0.3.0 then showed every icon as
 -- missing). So each buff is first asked for directly by its known ID

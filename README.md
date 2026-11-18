@@ -1,4 +1,4 @@
-# Toasty (v0.7.2)
+# Toasty Buffs (v0.8.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -15,7 +15,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
   - **No Nutritious food?** A gray Well Fed icon that says "No food".
 - **Fully toasty.** When all four icons are lit (Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
 - **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with.
-- **Settings** in Esc → Options → AddOns → Toasty (or `/toasty`).
+- **Settings** in Esc → Options → AddOns → Toasty Buffs (or `/toasty`).
 
 ### Looks like Blizzard's UI
 - The icons sit in a tooltip-style panel (Blizzard's tooltip background and border) with "Toasty" in gold above them. Settings → **Name and border** turns the panel off for bare icons.
@@ -36,12 +36,12 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - On a client without aura containers, Toasty reads the buffs itself: it asks for each by spell ID, and if it can't tell in combat it keeps the last known state and counts down from the time it knew.
 
 ## Install
-1. Copy the `Toasty` folder to `World of Warcraft\_forever_\Interface\AddOns\`.
+1. Copy the `ToastyBuffs` folder to `World of Warcraft\_forever_\Interface\AddOns\`.
    **Copy the folder; don't symlink it.** On Forever, a symlinked addon folder silently resets its SavedVariables.
 2. Restart the game, or `/reload` if it's already running, and enable the addon on the character screen.
 3. The TOC says `## Interface: 16001`. If the addon shows as out of date, check the real number with
    `/run print(select(4, GetBuildInfo()))` and update the TOC line.
-4. Updating from 0.1.0: delete `Camp.lua` and `UI_HUD.lua` from the folder (0.2.0 no longer loads them).
+4. Updating from 0.7.x or older: the folder is now `ToastyBuffs`. Delete the old `Toasty` folder. To keep your settings, copy `WTF\Account\<account>\SavedVariables\Toasty.lua` to `ToastyBuffs.lua` in the same folder (game closed) and change `ToastyDB` to `ToastyBuffsDB` inside it.
 
 ## First in-game test (solo)
 1. Type `/toasty demo`. The two icons cycle through every state, 5 seconds each. Shift-drag the panel where you want it. Type `/toasty demo` again to stop.
@@ -52,7 +52,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 5. Type `/toasty probe` and send the output.
 
 ## Commands
-- `/toasty` or `/toast`: open the settings
+- `/toasty`, `/toast` or `/toastybuffs`: open the settings
 - `/toasty show`, `/toasty hide`: show or hide the icons
 - `/toasty demo`: cycle the icons through every state (again to stop)
 - `/toasty tip <object>`: show a camp object's tooltip at the cursor, e.g. `/toasty tip Camp Chair`
@@ -63,7 +63,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 | File | Role |
 |---|---|
 | `Util.lua` | Helpers: secret-value guards, safe API calls, chat output, timers, combat queue, buff-bar time format |
-| `Core.lua` | Event frame, internal message bus, SavedVariables (`ToastyDB`), runs queued changes after combat |
+| `Core.lua` | Event frame, internal message bus, SavedVariables (`ToastyBuffsDB`), runs queued changes after combat |
 | `UI_Common.lua` | Blizzard colors, icons and sounds |
 | `Status.lua` | Reads your buffs and debuffs on `UNIT_AURA` (Well-Rested 429959, Camp Benefits 1229741, Campfire Nearby 1283391, Boosted Rest 1229451) by spell ID and by name, learning new IDs; counts your Cozy Sleeping Bags (item 211527) and reads its cooldown |
 | `Food.lua` | The XP food buff: Well Fed (by name, icon 136000, or the food buffs not named Well Fed) whose tooltip mentions experience, learned per spell ID; the best Nutritious food in your bags (items whose use spell is Nutritious Food, 1248377, as EllesmereUI finds them) |

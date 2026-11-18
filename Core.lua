@@ -1,4 +1,6 @@
 -- Toasty: event dispatch, internal message bus, saved settings.
+-- The addon's folder and TOC are ToastyBuffs (0.8.0): "Toasty" was taken
+-- by another Forever addon's folder. Settings live in ToastyBuffsDB.
 local addonName, ns = ...
 
 ---------------------------------------------------------------------------
@@ -94,8 +96,8 @@ end
 
 ns.On("ADDON_LOADED", function(_, name)
   if name ~= addonName then return end
-  ToastyDB = ToastyDB or {}
-  local db = ToastyDB
+  ToastyBuffsDB = ToastyBuffsDB or {}
+  local db = ToastyBuffsDB
   if (db.schema or 1) < 2 then
     for _, k in ipairs(OLD_KEYS) do db[k] = nil end
     if db.learned then db.learned.fire, db.learned.fireIDs = nil, nil end

@@ -92,7 +92,7 @@ end
 
 local function Help()
   ns.Print("commands:")
-  P("  /toasty: open the settings")
+  P("  /toasty (or /toast, /toastybuffs): open the settings")
   P("  /toasty show | hide: show or hide the icons")
   P("  /toasty demo: cycle the icons through every state (again to stop)")
   P("  /toasty tip <object>: show a camp object's tooltip, e.g. /toasty tip Camp Chair")
@@ -100,9 +100,12 @@ local function Help()
   P("  /toasty probe: developer report")
 end
 
-SLASH_TOASTY1 = "/toasty"
-SLASH_TOASTY2 = "/toast"
-SlashCmdList.TOASTY = function(msg)
+-- Key and globals carry the full name so they can't clash with another
+-- addon called Toasty (Toasty Toasts exists on Forever).
+SLASH_TOASTYBUFFS1 = "/toasty"
+SLASH_TOASTYBUFFS2 = "/toast"
+SLASH_TOASTYBUFFS3 = "/toastybuffs"
+SlashCmdList.TOASTYBUFFS = function(msg)
   if not ns.db then return end
   local cmd, rest = string.match(msg or "", "^%s*(%S*)%s*(.-)%s*$")
   cmd = string.lower(cmd or "")
