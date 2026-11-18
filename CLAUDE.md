@@ -22,4 +22,13 @@ After pushing, check the run:
 `gh api repos/cnhermey/toasty/actions/runs --jq '.workflow_runs[0] | {status, conclusion, html_url}'`
 and the release: `gh api repos/cnhermey/toasty/releases/latest --jq '{tag_name, html_url}'`.
 
+The same workflow uploads the zip to CurseForge (Forever, game version
+1.60.1) once `CF_API_KEY` is a repository secret and Toasty.toc has
+`## X-Curse-Project-ID: <id>`; until then that step skips. To resend the
+current version to CurseForge only: Actions → Release → Run workflow with
+"Upload to CurseForge" ticked (or `gh api -X POST
+repos/cnhermey/toasty/actions/workflows/release.yml/dispatches -f ref=main
+-F 'inputs[curseforge]=true'`). Listing text and logo: `.github/curseforge.md`,
+`.github/curseforge-logo.png`.
+
 Files that shouldn't be in the zip go in `.gitattributes` as `export-ignore`.

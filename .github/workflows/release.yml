@@ -7,9 +7,13 @@
 #      .gitattributes, like .github and CLAUDE.md, are left out),
 #   3. creates tag and release vX.Y.Z with Toasty-vX.Y.Z.zip attached and
 #      that version's CHANGELOG section as the notes.
+#   4. uploads the same zip to CurseForge (Forever, game version 1.60.1)
+#      once it's set up: the CF_API_KEY repository secret, and
+#      "## X-Curse-Project-ID: <id>" in Toasty.toc. Until then it skips.
 # WoWUp installs from the latest release's zip.
 # Run it by hand from the Actions tab (Run workflow) to release the current
-# version again after a failure.
+# version again after a failure; tick "Upload to CurseForge" to send the
+# current version to CurseForge even if its GitHub release exists.
 name: Release
 
 on:
@@ -17,6 +21,11 @@ on:
     branches: [main]
     paths: [Toasty.toc]
   workflow_dispatch:
+    inputs:
+      curseforge:
+        description: Upload the current version to CurseForge even if its GitHub release exists
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -48,7 +57,7 @@ jobs:
           fi
 
       - name: Build the zip
-        if: steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false' || inputs.curseforge
         env:
           V: ${{ steps.v.outputs.version }}
         run: |
@@ -58,7 +67,7 @@ jobs:
           unzip -l "dist/Toasty-v$V.zip"
 
       - name: Write the release notes
-        if: steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false' || inputs.curseforge
         env:
           V: ${{ steps.v.outputs.version }}
         run: |
@@ -87,3 +96,39 @@ jobs:
             --title "Toasty v$V" \
             --notes-file notes.md \
             --target "$GITHUB_SHA"
+
+      - name: Upload to CurseForge
+        if: steps.check.outputs.exists == 'false' || inputs.curseforge
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          V: ${{ steps.v.outputs.version }}
+          CF_GAME_VERSION: "1.60.1"
+        run: |
+          pid=$(sed -n 's/^## X-Curse-Project-ID:[[:space:]]*//p' Toasty.toc | tr -d '\r[:space:]')
+          if [ -z "$CF_API_KEY" ] || [ -z "$pid" ]; then
+            echo "CurseForge isn't set up yet (needs the CF_API_KEY secret and X-Curse-Project-ID in Toasty.toc). Skipping."
+            exit 0
+          fi
+          api=https://wow.curseforge.com/api
+          curl -sSf -H "X-Api-Token: $CF_API_KEY" "$api/game/version-types" > types.json
+          curl -sSf -H "X-Api-Token: $CF_API_KEY" "$api/game/versions" > versions.json
+          # The game version named 1.60.1, in a Forever version type when there is one.
+          ids=$(jq -c --arg n "$CF_GAME_VERSION" --slurpfile types types.json '
+            ($types[0] | map(select(.name | test("forever"; "i")) | .id)) as $fv
+            | [ .[] | select(.name == $n)
+                    | select(($fv | length) == 0 or (.gameVersionTypeID as $t | $fv | index($t))) | .id ]
+          ' versions.json)
+          if [ "$ids" = "[]" ]; then
+            echo "No CurseForge game version named $CF_GAME_VERSION. Version types:" >&2
+            jq -r '.[] | "\(.id) \(.name)"' types.json >&2
+            exit 1
+          fi
+          echo "Game versions: $ids"
+          jq -n --rawfile cl notes.md --arg dn "Toasty v$V" --argjson gv "$ids" \
+            '{changelog: $cl, changelogType: "markdown", displayName: $dn, gameVersions: $gv, releaseType: "release"}' > meta.json
+          curl -sSf -H "X-Api-Token: $CF_API_KEY" \
+            -F "metadata=<meta.json" \
+            -F "file=@dist/Toasty-v$V.zip" \
+            "$api/projects/$pid/upload-file"
+          echo
+          echo "Uploaded Toasty v$V to CurseForge project $pid."
