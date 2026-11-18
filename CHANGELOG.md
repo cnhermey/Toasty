@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.1 (2026-11-17)
+- New picture for Toasty in WoWUp, showing all four icons and a camp object tooltip. No changes in game.
+
 ## 0.7.0 (2026-11-17)
 - When all four icons are lit, "Toasty" turns red with a little campfire on each side. The demo's first step shows it.
 
