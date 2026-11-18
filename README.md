@@ -1,4 +1,4 @@
-# Toasty (v0.7.1)
+# Toasty (v0.7.2)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 

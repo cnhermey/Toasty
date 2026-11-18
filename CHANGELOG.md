@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.2 (2026-11-17)
+- Toasty is now on CurseForge. No changes in game.
+
 ## 0.7.1 (2026-11-17)
 - New picture for Toasty in WoWUp, showing all four icons and a camp object tooltip. No changes in game.
 
