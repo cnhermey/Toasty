@@ -1,4 +1,4 @@
-# Toasty Buffs (v0.12.1)
+# Toasty Buffs (v0.12.2)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -9,8 +9,8 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - **Icon 2: Camp Benefits.** The camp buffs, with their time left.
   - **No camp buffs, but by a campfire?** The **Campfire Nearby** icon. Sit for 1 minute to get the camp buffs.
   - **Neither?** A gray Camp Benefits icon.
-- **Icon 3: Boosted Rest.** The Camp Tent's rested XP cooldown (a debuff), with its time left.
-  - **Gray?** You don't have Boosted Rest, so a Camp Tent can give you more rested XP again.
+- **Icon 3: Rest.** Your rested XP, as a percent of your level under the icon. Lit at 5% or more (a Camp Tent only tops you up to 5%, so it would add nothing), or while the tent's cooldown (Boosted Rest) runs.
+  - **Gray?** Under 5% rested and no cooldown: rest at a camp with a Camp Tent to top up.
 - **Icon 4: XP food.** Well Fed from **Nutritious** food (+5% experience from kills, 15 minutes), with its time left. Well Fed from food without the XP bonus doesn't count.
   - **No XP food buff?** The icon becomes your best Nutritious food (the highest level you can eat): click it to eat. It shows how many you have.
   - **No Nutritious food?** A gray Well Fed icon that says "No food".
@@ -64,6 +64,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 6. Type `/toasty probe` and send the output.
 
 ## Commands
+- `/toasty buffs`: list your buffs with their spell IDs and your rested XP (for bug reports)
 - `/toasty`, `/toast` or `/toastybuffs`: open the settings
 - `/toasty show`, `/toasty hide`: show or hide the icons
 - `/toasty demo`: cycle the icons through every state (again to stop)

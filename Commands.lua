@@ -113,6 +113,23 @@ local function Probe()
     .. " · settings page " .. tostring(ns.Options.category ~= nil or ns.Options.canvas ~= nil))
 end
 
+-- /toasty buffs: every buff on you with its ID, length and what Toasty
+-- makes of it, for bug reports (XP food not found, say). Out of combat.
+local function Buffs()
+  if InCombatLockdown() then ns.Print("Leave combat first: buffs can't be read in combat."); return end
+  local xp = ns.Food:XPFoodIDs()
+  ns.Print("Your buffs (name · spell ID · length):")
+  for i = 1, 100 do
+    local a = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex and C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
+    if type(a) ~= "table" then break end
+    local id, dur = ns.Num(a.spellId), ns.Num(a.duration)
+    local tag = (id and xp[id]) and Yes(" XP food") or ""
+    P("  " .. tostring(ns.Str(a.name)) .. " · " .. tostring(id) .. " · " .. (dur and dur > 0 and ns.Duration(dur) or "no end") .. tag)
+  end
+  local pct = ns.Status:RestedPct()
+  P("  Rested XP: " .. (pct and string.format("%.1f%%", pct) or "n/a") .. " of your level (tent tops up to " .. ns.Status.TENT_PCT .. "%)")
+end
+
 local function Help()
   ns.Print("commands:")
   P("  /toasty (or /toast, /toastybuffs): open the settings")
@@ -120,6 +137,7 @@ local function Help()
   P("  /toasty demo: cycle the icons through every state (again to stop)")
   P("  /toasty tip <object> [level]: show a camp object's tooltip, e.g. /toasty tip Mana Well 30")
   P("  /toasty reset: move the icons back to their first spot")
+  P("  /toasty buffs: list your buffs and IDs (for bug reports)")
   P("  /toasty probe: developer report")
 end
 
@@ -147,6 +165,8 @@ SlashCmdList.TOASTYBUFFS = function(msg)
   elseif cmd == "reset" then
     ns.Bar:ResetPosition()
     ns.Print("Icons moved back.")
+  elseif cmd == "buffs" then
+    Buffs()
   elseif cmd == "probe" then
     Probe()
   else

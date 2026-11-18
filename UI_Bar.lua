@@ -6,8 +6,9 @@
 --      Cozy Sleeping Bag. Without a bag: a gray bag icon, "No bag".
 --   2. Camp Benefits. Without it: Campfire Nearby when you're by a fire,
 --      else a gray Camp Benefits icon.
---   3. Boosted Rest (the Camp Tent's cooldown debuff). Without it: a gray
---      Boosted Rest icon, meaning a Camp Tent can give you rested XP again.
+--   3. Rested XP: lit at 5% of your level or more (a Camp Tent adds nothing
+--      then), or while the tent's cooldown (Boosted Rest) runs; gray below
+--      5%: a Camp Tent can top you up. The percent shows under the icon.
 --   4. Well Fed from Nutritious food (+5% XP). Without it: a button that
 --      eats your best Nutritious food; without food, "No food".
 -- With aura containers (Engine.lua), the game draws the buffs over these
@@ -118,7 +119,7 @@ end
 local HAVE = {
   function(s) return s.wellRested and ns.Status:BagStacks(s.wellRested) >= ns.Status.BAG_STACKS and s.wellRested end,
   function(s) return s.benefits end,
-  function(s) return s.boosted end,
+  function(s) return s.boosted or (ns.Status:RestOK(s) and {}) end,
   function() return ns.Food.s end,
 }
 
@@ -447,17 +448,30 @@ local function ClearCooldown(cd)
   if cd.Clear then cd:Clear() else cd:SetCooldown(0, 0) end
 end
 
+-- Icon 3: your rested XP. A Camp Tent tops it up to 5% of your level, and
+-- does nothing above that (no Boosted Rest then). Lit at 5% or more, or
+-- while the tent's cooldown (Boosted Rest) runs; gray below 5% with no
+-- cooldown: a tent can give you more. The percent shows under the icon.
 local function RestView(s)
   local S = ns.Status
+  local pct = S:RestedPct()
+  local pctText = pct and (math.floor(pct + 0.5) .. "%") or nil
   if s.boosted then
     local v = BuffView(s.boosted, "boosted")
-    v.hint = "A Camp Tent can't give you rested XP again until this ends."
+    v.hint = "Rested XP: " .. (pctText or "?") .. " of your level. A Camp Tent can't add more until Boosted Rest ends."
     return v
   end
+  if pct and pct >= S.TENT_PCT then
+    return {
+      icon = S:Icon("boosted"), spell = ns.db.learned.boosted or S.AURAS.boosted.id,
+      title = "Rested XP", under = pctText,
+      hint = "Rested XP: " .. pctText .. " of your level. A Camp Tent only tops you up to " .. S.TENT_PCT .. "%, so it would add nothing now.",
+    }
+  end
   return {
-    icon = S:Icon("boosted"), gray = true, spell = ns.db.learned.boosted or S.AURAS.boosted.id,
-    title = S:Name("boosted"),
-    hint = "Ready: rest at a camp with a Camp Tent for more rested XP.",
+    icon = S:Icon("boosted"), gray = true, under = pctText, underGray = true,
+    spell = ns.db.learned.boosted or S.AURAS.boosted.id, title = "Rested XP",
+    hint = "Rested XP: " .. (pctText or "?") .. " of your level. Rest at a camp with a Camp Tent to top it up to " .. S.TENT_PCT .. "%.",
   }
 end
 
@@ -494,6 +508,10 @@ local function Paint(slot, v)
   slot.label:SetText(v.text or "")
   if v.text then
     slot.duration:SetText("")
+  elseif v.under then
+    slot.duration:SetText(v.under)
+    local c = v.underGray and UI.GRAY or UI.GOLD
+    slot.duration:SetTextColor(c.r, c.g, c.b)
   elseif v.left then
     slot.duration:SetText(ns.BuffTime(v.left) or "")
     local c = v.left < WARN and UI.WHITE or UI.GOLD
@@ -536,7 +554,7 @@ function B:ApplyToasty(s, food)
   if self:VisibleCount() < COUNT then
     all = bag and s.benefits and true or false
   else
-    all = bag and s.benefits and s.boosted and food and true or false
+    all = bag and s.benefits and S:RestOK(s) and food and true or false
   end
   local c = all and UI.RED or UI.GOLD
   f.title:SetTextColor(c.r, c.g, c.b)

@@ -29,11 +29,15 @@ local OTHER_FOOD = { [18192] = true, [18194] = true, [22730] = true, [25661] = t
 
 local function SpellName(id) return ns.Status.SpellName(id) end
 
+-- XP food buff IDs are saved. "Not XP" answers are only kept for this
+-- session: 0.12 saved them, and a tooltip read before it had loaded marked
+-- real XP food as "no XP" for good (it then never lit up).
+local notXpSession = {}
 local function Learned()
   local L = ns.db.learned
   L.xpFood = L.xpFood or {}
-  L.notXpFood = L.notXpFood or {}
-  return L.xpFood, L.notXpFood
+  L.notXpFood = nil
+  return L.xpFood, notXpSession
 end
 
 function F:XPFoodIDs() return (Learned()) end
@@ -65,6 +69,7 @@ local XP_WORDS = {
 
 local function SaysXP(text)
   local low = string.lower(text)
+  if string.find(low, "%f[%a]xp%f[%A]") then return true end   -- "+5% XP"
   for _, w in ipairs(XP_WORDS) do
     if string.find(low, w, 1, true) or string.find(text, w, 1, true) then return true end
   end
@@ -77,10 +82,16 @@ local function TooltipSaysXP(instance)
   if type(data) ~= "table" or type(data.lines) ~= "table" or #data.lines < 2 then return nil end
   local read = false
   for i = 2, #data.lines do
-    local t = data.lines[i] and ns.Str(data.lines[i].leftText)
-    if t then
-      read = true
-      if SaysXP(t) then return true end
+    local line = data.lines[i]
+    if line and line.leftText == nil and TooltipUtil and TooltipUtil.SurfaceArgs then
+      pcall(TooltipUtil.SurfaceArgs, line)   -- older tooltip data keeps text in args
+    end
+    for _, field in ipairs({ "leftText", "rightText" }) do
+      local t = line and ns.Str(line[field])
+      if t then
+        read = true
+        if SaysXP(t) then return true end
+      end
     end
   end
   if read then return false end
@@ -114,6 +125,52 @@ end
 ---------------------------------------------------------------------------
 -- Scan
 ---------------------------------------------------------------------------
+---------------------------------------------------------------------------
+-- Eating a Nutritious food: the long buff that appears in the next minute
+-- is the XP food buff, whatever it's called. Learned by ID, no tooltip.
+---------------------------------------------------------------------------
+F.EAT_WINDOW = 60      -- eating takes up to 30 s; Well Fed follows
+F.MIN_FOOD_BUFF = 300  -- longer than the eating aura; Well Fed is 15 min
+
+local function HelpfulIDs()
+  local ids = {}
+  if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return ids end
+  for i = 1, 100 do
+    local a = ns.Try("GetAuraDataByIndex", C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+    if type(a) ~= "table" then break end
+    local id = ns.Num(a.spellId)
+    if id then ids[id] = true end
+  end
+  return ids
+end
+
+function F:StartEating()
+  self.eating = { untilT = GetTime() + F.EAT_WINDOW, before = HelpfulIDs() }
+  self.seen.eats = (self.seen.eats or 0) + 1
+  ns.Debug("Eating Nutritious food: watching for the XP buff")
+end
+
+local function LearnFromEating(xp)
+  local e = F.eating
+  if not e then return nil end
+  if GetTime() > e.untilT then F.eating = nil; return nil end
+  for i = 1, 100 do
+    local a = ns.Try("GetAuraDataByIndex", C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+    if type(a) ~= "table" then break end
+    local id, dur = ns.Num(a.spellId), ns.Num(a.duration)
+    if id and not e.before[id] and dur and dur >= F.MIN_FOOD_BUFF then
+      xp[id] = true
+      notXpSession[id] = nil
+      F.eating = nil
+      F.seen.xp = F.seen.xp + 1
+      F.seen.learnedByEating = (F.seen.learnedByEating or 0) + 1
+      ns.Debug("Learned XP food buff from eating", id, ns.Str(a.name))
+      ns.Fire("XPFOOD_LEARNED", id)
+      return a, id
+    end
+  end
+end
+
 function F:Scan()
   if not ns.db then return end
   local inCombat = InCombatLockdown and InCombatLockdown() and true or false
@@ -126,6 +183,11 @@ function F:Scan()
       local a = ns.Try("GetPlayerAuraBySpellID", C_UnitAuras.GetPlayerAuraBySpellID, id)
       if type(a) == "table" then found, foundID = a, id; break end
     end
+  end
+
+  -- Just ate a Nutritious food: the new long buff is it.
+  if not found and not inCombat and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    found, foundID = LearnFromEating(xp)
   end
 
   -- Out of combat: any Well Fed, checked by its tooltip (and learned).
@@ -236,6 +298,20 @@ end)
 ns.OnUnit("UNIT_AURA", "player", function()
   ns.Coalesce("foodscan", 0.15, function() F:Scan() end)
 end)
+
+-- Eating: your cast of the Nutritious Food use spell (every Nutritious
+-- item shares it), by ID or by name.
+local function IsNutritious(id)
+  if id == F.NUTRITIOUS then return true end
+  local n = SpellName(F.NUTRITIOUS)
+  return n ~= nil and SpellName(id) == n
+end
+for _, ev in ipairs({ "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_SUCCEEDED" }) do
+  ns.OnUnit(ev, "player", function(_, _, _, spellID)
+    local id = ns.Num(spellID)
+    if id and IsNutritious(id) and not (F.eating and GetTime() < F.eating.untilT) then F:StartEating() end
+  end)
+end
 
 ns.On("PLAYER_REGEN_ENABLED", function()
   ns.Coalesce("foodscan", 0.3, function() F:Scan() end)

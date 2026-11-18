@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.2 (2026-11-18)
+- Fixed: the 5% XP icon didn't light up when you were Well Fed from Nutritious food. Toasty now learns the XP food buff when you eat (the new 15-minute buff), instead of relying on the buff's description.
+- Fixed: the Rest icon only lit up with the Camp Tent's cooldown (Boosted Rest). It now goes by your rested XP: lit at 5% of your level or more (a tent can't add more then), with the percent under the icon. Gray below 5% means a Camp Tent can top you up.
+- New: `/toasty buffs` lists your buffs with their IDs and your rested XP, to help with bug reports.
+
 ## 0.12.1 (2026-11-18)
 - Fixed `/toasty tip` and the Test tooltip button showing the camp object's description twice. Hovering real camp objects wasn't affected.
 

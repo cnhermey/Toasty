@@ -29,6 +29,7 @@ ns.Status = S
 
 S.BAG_ITEM = 211527
 S.BAG_ICON = "Interface\\Icons\\INV_Misc_Bag_BigBagOfEnchantments"
+S.TENT_PCT = 5     -- a Camp Tent tops rested XP up to 5% of your level; above that it does nothing
 S.BAG_STACKS = 3   -- Well-Rested stacks to 3 (+3% XP); EllesmereUI agrees (SLEEPING_BAG_STACKS)
 
 -- Well-Rested stacks you have (1 when it reads 0), 0 without the buff.
@@ -125,6 +126,23 @@ local function Read(a, prev)
   end
   if r.duration == 0 then r.expires = nil end   -- doesn't run out
   return r
+end
+
+-- Rested XP as a percent of your current level's XP, or nil (max level).
+function S:RestedPct()
+  local max = ns.Num(UnitXPMax and UnitXPMax("player"))
+  if not max or max <= 0 then return nil end
+  local rested = ns.Num(GetXPExhaustion and GetXPExhaustion()) or 0
+  return rested / max * 100
+end
+
+-- Rest covered: 5% rested XP or more (a tent would add nothing), or the
+-- tent's cooldown (Boosted Rest) is on (it can't add more yet).
+function S:RestOK(s)
+  s = s or self.s
+  if s.boosted then return true end
+  local pct = self:RestedPct()
+  return pct ~= nil and pct >= self.TENT_PCT
 end
 
 S.ReadAura = Read
@@ -268,3 +286,9 @@ end)
 ns.On("BAG_UPDATE_COOLDOWN", function()
   ns.Coalesce("bagcd", 0.1, function() ns.Fire("STATUS_CHANGED") end)
 end)
+
+-- Rested XP changes: redraw (Rest icon).
+local function RestedChanged() ns.Coalesce("rested", 0.3, function() ns.Fire("STATUS_CHANGED") end) end
+ns.On("UPDATE_EXHAUSTION", RestedChanged)
+ns.On("PLAYER_XP_UPDATE", RestedChanged)
+ns.On("PLAYER_UPDATE_RESTING", RestedChanged)
