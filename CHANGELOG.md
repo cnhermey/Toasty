@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.12.1 (2026-11-18)
+- Fixed `/toasty tip` and the Test tooltip button showing the camp object's description twice. Hovering real camp objects wasn't affected.
+
 ## 0.12.0 (2026-11-18)
 - New setting: **Only show what's missing** (Settings → Icons). An icon hides while you have its buff (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest, XP food), so an icon on screen means "go get this". The other icons close up, and when you have everything the panel hides. An icon comes back in its buff's last minute. Off by default.
 - In combat, icons wait until the fight ends to hide or come back.

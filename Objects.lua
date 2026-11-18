@@ -284,10 +284,14 @@ function O:Test(name)
     ns.Print("Unknown camp object:", name ~= "" and name or "(none). Try: /toasty tip Mana Well")
     return
   end
-  GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-  GameTooltip:SetText(found, 1, 1, 1)
-  done[GameTooltip] = nil
+  -- SetText shows the tooltip, and our OnShow hook (a world tooltip: owner
+  -- UIParent) may add the lines right then. So set the test level first,
+  -- and add the lines only if the hook didn't (0.12.0 added them twice).
   ns.Scaling.levelOverride = lvl
-  ns.Try("Objects.Test", Annotate, GameTooltip, found)
+  ns.Try("Objects.Test", function()
+    GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
+    GameTooltip:SetText(found, 1, 1, 1)
+    if not done[GameTooltip] then Annotate(GameTooltip, found) end
+  end)
   ns.Scaling.levelOverride = nil
 end

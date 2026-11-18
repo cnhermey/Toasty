@@ -2,7 +2,7 @@
 ## Title: Toasty Buffs
 ## Notes: Camping status icons (Well-Rested, Camp Benefits, Boosted Rest, XP food) and tooltips for camp objects.
 ## Author: cnhermey
-## Version: 0.12.0
+## Version: 0.12.1
 ## X-Curse-Project-ID: 1813597
 ## SavedVariables: ToastyBuffsDB
 ## SavedVariablesPerCharacter: ToastyBuffsCharDB
