@@ -97,6 +97,14 @@ local function Probe()
     .. (ns.char.object and (" (" .. tostring(ns.char.object.name) .. ")") or ""))
   P("  Object tooltips: hook " .. tostring(O.mode or No("none")) .. " · explained " .. O.seen.shown
     .. " · other world tooltips " .. O.seen.unknown .. " · last other: " .. tostring(O.lastUnknown or "none"))
+  local Sc = ns.Scaling
+  local mism = Sc:Mismatches()
+  P("  Camp buff scaling: level " .. tostring(ns.Num(UnitLevel("player")))
+    .. " · locale " .. tostring(GetLocale and GetLocale()) .. (Has("C_TooltipInfo.GetUnitBuffByAuraInstanceID") and "" or No(" · no buff tooltip API"))
+    .. " · camp buff tooltips read " .. Sc.seen.read .. " (unreadable " .. Sc.seen.unreadable .. ", skipped after level-up " .. Sc.seen.skippedLevel .. ")"
+    .. " · values saved " .. Sc:LearnedCount() .. " (new " .. Sc.seen.learned .. ", changed " .. Sc.seen.changed .. ")"
+    .. " · last read: " .. tostring(Sc.last or "none"))
+  P("    Differs from the level table: " .. (#mism > 0 and ns.UI.Wrap(ns.UI.YELLOW, table.concat(mism, "; ")) or Gray("nothing")))
   P("  Icons shown " .. tostring(B.frame and B.frame:IsShown() or false)
     .. " · in combat " .. tostring(InCombatLockdown() and true or false)
     .. " · demo " .. tostring(ns.Demo.active == true)
@@ -108,7 +116,7 @@ local function Help()
   P("  /toasty (or /toast, /toastybuffs): open the settings")
   P("  /toasty show | hide: show or hide the icons")
   P("  /toasty demo: cycle the icons through every state (again to stop)")
-  P("  /toasty tip <object>: show a camp object's tooltip, e.g. /toasty tip Camp Chair")
+  P("  /toasty tip <object> [level]: show a camp object's tooltip, e.g. /toasty tip Mana Well 30")
   P("  /toasty reset: move the icons back to their first spot")
   P("  /toasty probe: developer report")
 end

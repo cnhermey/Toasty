@@ -76,6 +76,7 @@ ns.DEFAULTS = {
   warnings = true,         -- pulse + a chat line in a buff's last minute, and when it drops
   hideXPAtMax = true,      -- at max level, hide Rest and 5% XP (XP buffs do nothing there)
   learned = {},            -- spell IDs seen on this client, by our key
+  scaling = {},            -- camp buff numbers read from your own buffs: [stat][level] = value
   demo = false,            -- demo icons; always off after a reload
   debug = false,
 }

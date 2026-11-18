@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0 (2026-11-18)
+- Camp object tooltips now show what a buff gives **at your level**, and the level where it goes up next (for example "+11 Strength", "More at level 38: +20 Strength"). Before, they always showed the level 60 number.
+- This covers the Mana Well, Sharpening Wheel, First Aid Kit, Lodestone, Incense Candle, Faction Banner and Enchanted Lute. The Fish Bowl, Camp Chair and Camp Tent are the same at every level.
+- Toasty learns: out of combat it reads your own camp buffs and remembers the real numbers for each level, for all your characters. Learned numbers show as "from your own buff".
+- The First Aid Kit tooltip now gives its Stamina amount.
+- `/toasty tip Mana Well 30` shows a tooltip as if you were level 30.
+
 ## 0.10.1 (2026-11-18)
 - Fixed two tooltips drawing over each other when you hover an icon with an active buff. Now you see only the game's buff tooltip. If a buff starts or ends while you hover, the tooltip switches over.
 - Fixed an error at login that could stop the game-drawn icons from hiding in demo mode.

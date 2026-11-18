@@ -1,4 +1,4 @@
-# Toasty Buffs (v0.10.1)
+# Toasty Buffs (v0.11.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -17,7 +17,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - **Fully toasty.** When all four icons are lit (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
 - **Warnings.** In the last minute of Well-Rested, Camp Benefits or the XP food buff, its icon pulses and a quiet chat line says so. Another line tells you when one runs out (Well Fed also drops when you die).
 - **Level 60.** XP buffs do nothing at max level, so the Rest and 5% XP icons hide themselves there (Settings → Hide XP icons at level 60).
-- **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with. It also tells you about you: when you already have that class buff (so the camp buff won't add to it), your Camp Tent cooldown, and when you can place your own next camp object.
+- **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with. Buffs that add a number (mana, Strength, Stamina, Intellect, Spirit, Attack Power, the Lute's armor) show **what you get at your level**, and the level where it goes up next. It also tells you about you: when you already have that class buff (so the camp buff won't add to it), your Camp Tent cooldown, and when you can place your own next camp object.
 - **Settings** in Esc → Options → AddOns → Toasty Buffs (or `/toasty`).
 
 ### Looks like WoW Forever's UI
@@ -29,6 +29,12 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - The sleeping bag button uses Blizzard's button highlight, pressed look and cooldown swipe.
 - Object descriptions are added to the game's own tooltip in Blizzard's tooltip colors.
 - The settings page uses Blizzard's checkboxes, slider and buttons.
+
+### Camp buffs grow with your level
+- The number on a camp buff depends on the level of the player who gets it (your level), not on the builder's profession skill. Skill 20, 140 and 300 only unlock the tier 1, 2 and 3 objects.
+- The percentage buffs (Fish Bowl 8%, Camp Chair 2%) and the Camp Tent are the same at every level.
+- Toasty starts from the level table in the game client's tooltip data (as published by endgametools.com). Out of combat, it also reads your own camp buffs' tooltips and saves each number with your level, so the tooltip uses what you really got (it then says "from your own buff"). Saved numbers are shared by all your characters.
+- A buff you had before you levelled up isn't read, in case it still carries the old number. Learning reads English tooltips only; other languages use the table.
 
 ### Combat and secret values
 - Using an item needs a secure button, so the icon bar is protected: moving it, resizing it, showing or hiding it and switching icon 1 between "buff" and "use bag" wait until you leave combat. The icons and times still update in combat.
@@ -52,14 +58,15 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 2. With a Cozy Sleeping Bag and no Well-Rested, click icon 1: the bag should be used and the icon should turn into Well-Rested with its time.
 3. Stand by a campfire: icon 2 shows Campfire Nearby. `/sit` for a minute: it becomes Camp Benefits with its time.
    With a Camp Tent at the camp, icon 3 lights up as Boosted Rest with its time; without the debuff it stays gray.
-4. Hover a camp object or campfire in the world: the tooltip should explain it. Type `/toasty tip Camp Chair` to see one without a camp.
-5. Type `/toasty probe` and send the output.
+4. Hover a camp object or campfire in the world: the tooltip should explain it, with the buff's value at your level. Type `/toasty tip Camp Chair` to see one without a camp, or `/toasty tip Mana Well 30` to see it as a level 30.
+5. Sit at a camp with a stat object (Mana Well, Sharpening Wheel, First Aid Kit...) until you have Camp Benefits, out of combat.
+6. Type `/toasty probe` and send the output.
 
 ## Commands
 - `/toasty`, `/toast` or `/toastybuffs`: open the settings
 - `/toasty show`, `/toasty hide`: show or hide the icons
 - `/toasty demo`: cycle the icons through every state (again to stop)
-- `/toasty tip <object>`: show a camp object's tooltip at the cursor, e.g. `/toasty tip Camp Chair`
+- `/toasty tip <object> [level]`: show a camp object's tooltip at the cursor, e.g. `/toasty tip Camp Chair`, or `/toasty tip Mana Well 30` to see it at level 30
 - `/toasty reset`: move the icons back to their first spot
 - `/toasty probe`: developer report
 
@@ -73,6 +80,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 | `Sleep.lua` | The sleeping bag countdown: your cast of the bag's use spell starts a minute to the next Well-Rested stack; each new stack restarts it, 3 ends it; moving pauses it |
 | `Alerts.lua` | Last-minute pulse and chat line for Well-Rested, Camp Benefits and XP food, and a line when one drops |
 | `Food.lua` | The XP food buff: Well Fed (by name, icon 136000, or the food buffs not named Well Fed) whose tooltip mentions experience, learned per spell ID; the best Nutritious food in your bags (items whose use spell is Nutritious Food, 1248377, as EllesmereUI finds them) |
+| `Scaling.lua` | Camp buff values by your level: the client's level table, plus numbers read from your own Camp Benefits (and object-named) buff tooltips out of combat, saved per level in `ToastyBuffsDB.scaling` |
 | `Objects.lua` | What every camp object and campfire does; adds it to the game tooltip for world objects (`TooltipDataProcessor` for objects when the client has it, else `GameTooltip` `OnShow` when the tooltip belongs to the world) |
 | `Engine.lua` | Game-drawn buff layers: an `AuraContainer` (`CustomAuraContainerTemplate`) per buff with one aura slot limited to its spell IDs (`candidateFilters.includeSpellIDs`), set up in the slot's `initializeFrame` |
 | `UI_Frame.lua` | The panel border per Border style: Forever's window rim (`UI-Frame-Metal` pieces, title bar included, at 75% size), Forever's slim line (`UI-HUD-ActionBar-Frame` cut into corners and edges) or the tooltip border |
@@ -103,4 +111,6 @@ Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.
 - That clicking the bag icon uses the bag once, not twice or never. Probe shows "button uses bag" and your "cast on key down" setting.
 - That hovering an icon with an active buff shows only one tooltip, in and out of combat. Probe "tooltips left to the game" should go up each time you hover one.
 - That camp objects show a tooltip when hovered at all (some world objects don't), and that the tooltip's first line is the object's plain name. Probe "Object tooltips" shows how many were explained, and the title of the last world tooltip that wasn't a known object, so a different name can be added.
-- What the Faction Banner is called in game, and the First Aid Kit's Stamina amount (the guide gives no number).
+- What the Faction Banner is called in game.
+- Camp buff scaling: that the Camp Benefits tooltip lists the numbers (probe "Camp buff scaling": "tooltips read" goes up and "last read" shows e.g. "str 34 at level 60"), and that they match the level table (probe "Differs from the level table: nothing"). If the buff tooltip has no numbers, each object may have its own buff: "read 0" with Camp Benefits on means Toasty needs the buff's name.
+- Whether a camp buff picked up before a level-up updates to the new level's number (Toasty assumes it may not).

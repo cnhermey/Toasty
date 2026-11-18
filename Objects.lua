@@ -7,6 +7,8 @@
 -- fields written on Blizzard frames.
 -- Data: Wowhead's "Camping Overview" guide (patch 1.60.1) and Warcraft
 -- Tavern. Numbers are the guide's; a missing number means the guide gave none.
+-- Buffs that add a number scale with your level: their `text` here is the
+-- level 60 value, and the tooltip shows Scaling.lua's value for your level.
 local _, ns = ...
 local UI = ns.UI
 
@@ -36,7 +38,7 @@ local DATA = {
   ["Repair Bot"]         = { prof = "Engineering", tier = 2, text = "Sells reagents and repairs your gear." },
   ["Anarchist's Workbench"] = { prof = "Engineering", tier = 3, text = "Workbench for recipes that need it." },
   -- First Aid
-  ["First Aid Kit"]      = { prof = "First Aid", tier = 1, buff = true, text = "Increases Stamina.", note = "Doesn't stack with Power Word: Fortitude." },
+  ["First Aid Kit"]      = { prof = "First Aid", tier = 1, buff = true, text = "+56 Stamina.", note = "Doesn't stack with Power Word: Fortitude." },
   ["Toxin Study"]        = { prof = "First Aid", tier = 2, text = "Gives Healing Potions and antivenom." },
   ["Plague Doctor's Laboratory"] = { prof = "First Aid", tier = 3, text = "Gives Healing Potions and poultices." },
   -- Fishing
@@ -112,11 +114,17 @@ function O:AddLines(tt, name, def)
     return
   end
   tt:AddLine(def.prof .. " camp object (tier " .. def.tier .. ")", g.r, g.g, g.b)
-  tt:AddLine(def.text, w.r, w.g, w.b, true)
+  -- Buffs that scale: the value at your level, then a gray line saying so.
+  local Sc = ns.Scaling
+  local text, scaleNote = Sc:Describe(name)
+  tt:AddLine(text or def.text, w.r, w.g, w.b, true)
   local inc = def.includes and DATA[def.includes]
   if inc then
-    tt:AddLine("Also gives the " .. def.includes .. " buff: " .. inc.text, w.r, w.g, w.b, true)
+    local incText, incNote = Sc:Describe(def.includes)
+    tt:AddLine("Also gives the " .. def.includes .. " buff: " .. (incText or inc.text), w.r, w.g, w.b, true)
+    scaleNote = scaleNote or incNote
   end
+  if scaleNote then tt:AddLine(scaleNote, gy.r, gy.g, gy.b, true) end
   if def.buff or inc then
     tt:AddLine("Sit by the campfire for 1 minute to get the buff.", gr.r, gr.g, gr.b, true)
   end
@@ -260,9 +268,13 @@ end
 
 ns.Listen("LOGIN", Install)
 
--- /toasty tip <name>: show an object's tooltip at the cursor, to check it.
+-- /toasty tip <name> [level]: show an object's tooltip at the cursor, to
+-- check it, as if you were that level.
 function O:Test(name)
   name = name or ""
+  local base, lvl = string.match(name, "^(.-)%s+(%d+)$")
+  lvl = tonumber(lvl)
+  if base and lvl and lvl >= 1 and lvl <= ns.MAX_LEVEL then name = base else lvl = nil end
   local low = string.lower(name)
   for known in pairs(DATA) do
     if string.lower(known) == low then name = known end
@@ -275,5 +287,7 @@ function O:Test(name)
   GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
   GameTooltip:SetText(found, 1, 1, 1)
   done[GameTooltip] = nil
-  Annotate(GameTooltip, found)
+  ns.Scaling.levelOverride = lvl
+  ns.Try("Objects.Test", Annotate, GameTooltip, found)
+  ns.Scaling.levelOverride = nil
 end
