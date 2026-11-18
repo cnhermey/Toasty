@@ -1,7 +1,8 @@
-# Toasty Buffs (v0.8.0)
+# Toasty Buffs (v0.9.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
+- **Sleeping bag countdown.** After you lay out your Cozy Sleeping Bag, the Bag icon counts down the minute to your next Well-Rested stack (one a minute, up to 3 for +3% XP), and the label reads "Bag 1/3", "Bag 2/3" until it's full. Moving pauses it ("still"): stay put on the bag.
 - **Icon 1: Well-Rested.** The Cozy Sleeping Bag buff, with Blizzard's icon, its stacks and its time left.
   - **No Well-Rested?** The icon becomes your **Cozy Sleeping Bag**: click it to use the bag. It shows the bag's cooldown, and how many you have when it's more than one.
   - **No bag?** A gray bag icon that says "No bag".
@@ -13,8 +14,10 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - **Icon 4: XP food.** Well Fed from **Nutritious** food (+5% experience from kills, 15 minutes), with its time left. Well Fed from food without the XP bonus doesn't count.
   - **No XP food buff?** The icon becomes your best Nutritious food (the highest level you can eat): click it to eat. It shows how many you have.
   - **No Nutritious food?** A gray Well Fed icon that says "No food".
-- **Fully toasty.** When all four icons are lit (Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
-- **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with.
+- **Fully toasty.** When all four icons are lit (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
+- **Warnings.** In the last minute of Well-Rested, Camp Benefits or the XP food buff, its icon pulses and a quiet chat line says so. Another line tells you when one runs out (Well Fed also drops when you die).
+- **Level 60.** XP buffs do nothing at max level, so the Rest and 5% XP icons hide themselves there (Settings → Hide XP icons at level 60).
+- **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with. It also tells you about you: when you already have that class buff (so the camp buff won't add to it), your Camp Tent cooldown, and when you can place your own next camp object.
 - **Settings** in Esc → Options → AddOns → Toasty Buffs (or `/toasty`).
 
 ### Looks like Blizzard's UI
@@ -66,6 +69,8 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 | `Core.lua` | Event frame, internal message bus, SavedVariables (`ToastyBuffsDB`), runs queued changes after combat |
 | `UI_Common.lua` | Blizzard colors, icons and sounds |
 | `Status.lua` | Reads your buffs and debuffs on `UNIT_AURA` (Well-Rested 429959, Camp Benefits 1229741, Campfire Nearby 1283391, Boosted Rest 1229451) by spell ID and by name, learning new IDs; counts your Cozy Sleeping Bags (item 211527) and reads its cooldown |
+| `Sleep.lua` | The sleeping bag countdown: your cast of the bag's use spell starts a minute to the next Well-Rested stack; each new stack restarts it, 3 ends it; moving pauses it |
+| `Alerts.lua` | Last-minute pulse and chat line for Well-Rested, Camp Benefits and XP food, and a line when one drops |
 | `Food.lua` | The XP food buff: Well Fed (by name, icon 136000, or the food buffs not named Well Fed) whose tooltip mentions experience, learned per spell ID; the best Nutritious food in your bags (items whose use spell is Nutritious Food, 1248377, as EllesmereUI finds them) |
 | `Objects.lua` | What every camp object and campfire does; adds it to the game tooltip for world objects (`TooltipDataProcessor` for objects when the client has it, else `GameTooltip` `OnShow` when the tooltip belongs to the world) |
 | `Engine.lua` | Game-drawn buff layers: an `AuraContainer` (`CustomAuraContainerTemplate`) per buff with one aura slot limited to its spell IDs (`candidateFilters.includeSpellIDs`), set up in the slot's `initializeFrame` |
@@ -77,6 +82,10 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.1). Edit `DATA` at the top of `Objects.lua` to change them.
 
 ## Needs in-game verification
+- The sleeping bag countdown: that using the bag is seen (probe "Sleeping bag": "bag uses seen 1"), that a stack arrives about when the countdown hits 0, and whether moving off the bag and back really restarts the minute.
+- That a single Well-Rested stack reads as 1 (or 0) stacks, so "Bag 1/3" is right.
+- Camp object tooltips: "You have Arcane Intellect..." when you do, and "Your next camp object" after you place one (probe: "next camp object").
+- XP food in other languages: the words in `Food.lua` (XP_WORDS) are WoW's usual ones, unconfirmed on Forever.
 - That a Nutritious food's Well Fed tooltip says "experience" (probe "XP food": "tooltips checked ... XP 1" after eating one, and its ID under "XP Well Fed IDs"). Non-English clients won't match yet.
 - That Nutritious food in bags is found (probe "Nutritious food": the name in quotes, and the food under "in bags"), and that clicking icon 4 eats it once.
 - That the food's game-drawn layer shows in combat (probe "game-drawn layer yes" once an XP food has been learned).

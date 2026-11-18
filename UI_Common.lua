@@ -23,6 +23,7 @@ local function Hex(c)
 end
 function UI.Wrap(c, text) return "|c" .. Hex(c) .. text .. "|r" end
 
+UI.CROP = { 0.07, 0.93, 0.07, 0.93 }   -- trims the light edge baked into icon art
 UI.ICON = "Interface\\Icons\\Spell_Fire_Fire"
 UI.BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 

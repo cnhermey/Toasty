@@ -92,6 +92,8 @@ local function Init(button, host)
     button:SetAllPoints(host)
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetAllPoints(button)
+    -- Same crop as Toasty's own icons: no light edge at the sides.
+    icon:SetTexCoord(ns.UI.CROP[1], ns.UI.CROP[2], ns.UI.CROP[3], ns.UI.CROP[4])
     -- Text above the icon, never under it.
     local carrier = CreateFrame("Frame", nil, button)
     carrier:SetAllPoints(button)

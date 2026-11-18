@@ -82,6 +82,17 @@ local function Probe()
   P("  Nutritious food: \"" .. tostring(S.SpellName(Fd.NUTRITIOUS) or No("name not loaded")) .. "\" · in bags "
     .. (Fd.bag and (tostring(Fd.bag.name or Fd.bag.item) .. " x" .. Fd.bag.count) or "none")
     .. " · button " .. (B.actions[4] and Yes("eats " .. tostring(B.actions[4])) or Gray("does nothing")))
+  local Z = ns.Sleep
+  local zl, zn, zm = Z:Countdown()
+  P("  Sleeping bag: Well-Rested " .. S:BagStacks() .. "/" .. S.BAG_STACKS
+    .. " · countdown " .. (zm and "paused (moving)" or zl and (math.ceil(zl) .. " s to stack " .. zn) or "off")
+    .. " · bag uses seen " .. Z.seen.uses .. " · stacks timed " .. Z.seen.stacks)
+  local Al = ns.Alerts
+  local ol, oh = ns.Objects:NextObject()
+  P("  Level " .. tostring(ns.Num(UnitLevel("player"))) .. (ns.AtMaxLevel() and " (max: XP icons " .. (ns.db.hideXPAtMax and "hidden" or "shown") .. ")" or "")
+    .. " · warnings " .. (ns.db.warnings and "on" or "off") .. " (" .. Al.seen.warned .. " sent, " .. Al.seen.dropped .. " drops)"
+    .. " · next camp object " .. (ol and ((ol <= 0 and "ready") or ((oh == "about" and "about " or "") .. ns.Duration(ol))) or "unknown")
+    .. (ns.char.object and (" (" .. tostring(ns.char.object.name) .. ")") or ""))
   P("  Object tooltips: hook " .. tostring(O.mode or No("none")) .. " · explained " .. O.seen.shown
     .. " · other world tooltips " .. O.seen.unknown .. " · last other: " .. tostring(O.lastUnknown or "none"))
   P("  Icons shown " .. tostring(B.frame and B.frame:IsShown() or false)

@@ -47,6 +47,30 @@ function F:Name() return SpellName(F.WELL_FED) or "Well Fed" end
 ---------------------------------------------------------------------------
 -- Is this Well Fed the XP kind? true / false, or nil when it can't be read.
 ---------------------------------------------------------------------------
+-- "Experience" in the client languages, as it appears in buff tooltips
+-- (lowercase; matched anywhere in a line). English is confirmed; the rest
+-- are the usual WoW words, unverified on Forever.
+local XP_WORDS = {
+  "experience",                 -- enUS, enGB
+  "erfahrung",                  -- deDE
+  "expérience",                 -- frFR
+  "experiencia",                -- esES, esMX
+  "esperienza",                 -- itIT
+  "experiência",                -- ptBR
+  "опыт",                       -- ruRU
+  "경험치",                      -- koKR
+  "经验",                        -- zhCN
+  "經驗",                        -- zhTW
+}
+
+local function SaysXP(text)
+  local low = string.lower(text)
+  for _, w in ipairs(XP_WORDS) do
+    if string.find(low, w, 1, true) or string.find(text, w, 1, true) then return true end
+  end
+  return false
+end
+
 local function TooltipSaysXP(instance)
   if not instance or not (C_TooltipInfo and C_TooltipInfo.GetUnitBuffByAuraInstanceID) then return nil end
   local data = ns.Try("TooltipInfo.GetUnitBuffByAuraInstanceID", C_TooltipInfo.GetUnitBuffByAuraInstanceID, "player", instance, "HELPFUL")
@@ -56,8 +80,7 @@ local function TooltipSaysXP(instance)
     local t = data.lines[i] and ns.Str(data.lines[i].leftText)
     if t then
       read = true
-      local low = string.lower(t)
-      if string.find(low, "experience", 1, true) then return true end
+      if SaysXP(t) then return true end
     end
   end
   if read then return false end

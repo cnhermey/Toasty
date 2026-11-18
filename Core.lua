@@ -72,6 +72,8 @@ ns.DEFAULTS = {
   barPoint = nil,          -- { point, relPoint, x, y } after a Shift-drag
   objectTips = true,       -- explain camp objects when you hover them in the world
   engine = true,           -- let the game draw the buffs (works in combat)
+  warnings = true,         -- pulse + a chat line in a buff's last minute, and when it drops
+  hideXPAtMax = true,      -- at max level, hide Rest and 5% XP (XP buffs do nothing there)
   learned = {},            -- spell IDs seen on this client, by our key
   demo = false,            -- demo icons; always off after a reload
   debug = false,
@@ -106,8 +108,24 @@ ns.On("ADDON_LOADED", function(_, name)
   db.schema = 2
   db.demo = false
   ns.db = db
+  ToastyBuffsCharDB = ToastyBuffsCharDB or {}
+  Fill(ToastyBuffsCharDB, ns.CHAR_DEFAULTS)
+  ns.char = ToastyBuffsCharDB
   ns.Fire("INIT")
 end)
+
+-- Per character: your own camp object's cooldown.
+ns.CHAR_DEFAULTS = {
+  object = nil,            -- { at = time(), id, name } the camp object you placed last
+}
+
+-- Forever's level cap. The 12.x engine's own max-level APIs may report the
+-- retail cap, so the classic cap is fixed here.
+ns.MAX_LEVEL = 60
+function ns.AtMaxLevel()
+  local lvl = ns.Num(UnitLevel("player"))
+  return lvl ~= nil and lvl >= ns.MAX_LEVEL
+end
 
 ns.On("PLAYER_LOGIN", function()
   ns.loggedIn = true

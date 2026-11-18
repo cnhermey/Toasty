@@ -37,6 +37,11 @@ local LAYOUT = {
     { kind = "button", label = "Reset position", width = 120, onClick = function() ns.Bar:ResetPosition() end },
   },
   {
+    { header = "Alerts" },
+    { kind = "check", key = "warnings", label = "Warnings",
+      tip = "In a buff's last minute its icon pulses and a chat line says so; another line when it runs out." },
+    { kind = "check", key = "hideXPAtMax", label = "Hide XP icons at level 60",
+      tip = "Rest and 5% XP do nothing at max level, so hide them there." },
     { header = "Camp objects" },
     { kind = "check", key = "objectTips", label = "Explain camp objects",
       tip = "When you hover a camp object or campfire in the world, its tooltip says what it does." },

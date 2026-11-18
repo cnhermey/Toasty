@@ -70,6 +70,24 @@ local DATA = {
 }
 O.DATA = DATA
 
+-- Camp object spells (all tiers), from the guides, for your own cooldown.
+local OBJECT_SPELLS = {
+  [1230564] = "Mana Well",       [1263005] = "Fermenter",        [1263078] = "Alchemy Laboratory",
+  [1230171] = "Sharpening Wheel",[1263041] = "Anvil",            [1263073] = "Master Forge",
+  [1262978] = "Cookie's Feast",  [1263067] = "Iron Oven",
+  [1230643] = "Enchanted Lute",  [1263056] = "Arcane Salvager",  [1263082] = "Arcane Forge",
+  [1230656] = "Reagent Bot",     [1263034] = "Repair Bot",       [1263083] = "Anarchist's Workbench",
+  [1230117] = "First Aid Kit",   [1262996] = "Toxin Study",      [1263001] = "Plague Doctor's Laboratory",
+  [1229745] = "Fish Bowl",       [1262990] = "Fishing Rack",     [1262998] = "Fishing Hut",
+  [1229705] = "Incense Candle",  [1262980] = "Greenhouse",       [1263070] = "Seed Hybridizer",
+  [1229432] = "Camp Tent",       [1263031] = "Tanning Rack",     [1263079] = "Sewing Machine",
+  [1230161] = "Lodestone",       [1262975] = "Rock Garden",      [1263071] = "Molten Foundry",
+  [1229517] = "Camp Chair",      [1262985] = "Field Guide",      [1262982] = "Trapper's Workbench",
+  [1263425] = "Faction Banner",  [1263032] = "Spinning Wheel",   [1263080] = "Loom",
+}
+O.OBJECT_COOLDOWN = 3600       -- every camp object shares 1 hour
+O.FIELD_GUIDE_PERK = 1225479   -- Legacy perk: 8% shorter per rank (ranks unknown)
+
 -- Longest names first, so "Arcane Forge" isn't read as "Forge".
 local ORDER = {}
 for name in pairs(DATA) do ORDER[#ORDER + 1] = name end
@@ -104,7 +122,86 @@ function O:AddLines(tt, name, def)
   end
   local note = def.note or (inc and inc.note)
   if note then tt:AddLine(note, gy.r, gy.g, gy.b, true) end
+  self:AddPersonalLines(tt, name, def, inc, note)
 end
+
+---------------------------------------------------------------------------
+-- About you: the class buff you already have, your tent cooldown, and when
+-- you can place your next camp object. Buffs can't be read in combat: then
+-- those lines are left out, never guessed.
+---------------------------------------------------------------------------
+local function HasBuffNamed(spellName)
+  if InCombatLockdown and InCombatLockdown() then return nil end
+  if C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName then
+    local a = ns.Try("GetAuraDataBySpellName", C_UnitAuras.GetAuraDataBySpellName, "player", spellName, "HELPFUL")
+    return type(a) == "table"
+  end
+  if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return nil end
+  for i = 1, 100 do
+    local a = ns.Try("GetAuraDataByIndex", C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+    if type(a) ~= "table" then return false end
+    if ns.Str(a.name) == spellName then return true end
+  end
+  return false
+end
+
+-- Seconds until your next camp object, how sure ("game"/"about"), or nil.
+function O:NextObject()
+  local o = ns.char and ns.char.object
+  if not (o and o.at) then return nil end
+  if o.id and C_Spell and C_Spell.GetSpellCooldown then
+    local cd = ns.Try("C_Spell.GetSpellCooldown", C_Spell.GetSpellCooldown, o.id)
+    local start, dur = type(cd) == "table" and ns.Num(cd.startTime), type(cd) == "table" and ns.Num(cd.duration)
+    if start and dur and start > 0 and dur > 1.5 then return math.max(0, start + dur - GetTime()), "game" end
+  end
+  return math.max(0, O.OBJECT_COOLDOWN - (time() - o.at)), "about"
+end
+
+function O:AddPersonalLines(tt, name, def, inc, note)
+  local gr, gy, org = UI.GREEN, UI.GRAY, UI.ORANGE or { r = 1, g = 0.5, b = 0.25 }
+  -- The class buff this camp buff doesn't stack with, if you have it.
+  local excl = note and string.match(note, "^Doesn't stack with (.-)%.")
+  if excl and HasBuffNamed(excl) then
+    tt:AddLine("You have " .. excl .. ", so this camp buff won't add to it.", org.r, org.g, org.b, true)
+  end
+  -- Camp Tent (and the tiers above it): your rested XP cooldown.
+  if name == "Camp Tent" or (inc and def.includes == "Camp Tent") then
+    local b = ns.Status.s.boosted
+    local left = b and ns.Status:Left(b)
+    if b then
+      tt:AddLine("Your tent cooldown (Boosted Rest): " .. (ns.BuffTime(left) or "on") .. " left.", gy.r, gy.g, gy.b, true)
+    elseif not (InCombatLockdown and InCombatLockdown()) then
+      tt:AddLine("Your tent rested XP is ready.", gr.r, gr.g, gr.b, true)
+    end
+  end
+  -- Your own next camp object.
+  local left, how = self:NextObject()
+  if left then
+    if left <= 0 then
+      tt:AddLine("You can place a camp object now.", gr.r, gr.g, gr.b, true)
+    else
+      local perk = IsPlayerSpell and ns.Clean(IsPlayerSpell(O.FIELD_GUIDE_PERK))
+      tt:AddLine("Your next camp object: " .. (how == "about" and "about " or "") .. (ns.BuffTime(left) or "?")
+        .. (how == "about" and perk and " (less with Field Guide)" or "") .. ".", gy.r, gy.g, gy.b, true)
+    end
+  end
+end
+
+-- Your camp object casts: remember when (per character).
+ns.OnUnit("UNIT_SPELLCAST_SUCCEEDED", "player", function(_, _, _, spellID)
+  local id = ns.Num(spellID)
+  if not id or not ns.char then return end
+  local name = OBJECT_SPELLS[id]
+  if not name then
+    local sn = ns.Status.SpellName(id)
+    if sn and DATA[sn] and not DATA[sn].fire then name = sn end
+  end
+  if name then
+    ns.char.object = { at = time(), id = id, name = name }
+    O.seen.placed = (O.seen.placed or 0) + 1
+    ns.Debug("Placed camp object", name, id)
+  end
+end)
 
 ---------------------------------------------------------------------------
 -- Hooks

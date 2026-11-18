@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0 (2026-11-17)
+- Sleeping bag countdown: after you lay out your Cozy Sleeping Bag, the Bag icon counts down the minute to each Well-Rested stack, and the label shows "Bag 1/3", "Bag 2/3" until it's full. Moving pauses it.
+- "Toasty" only turns red with a full 3/3 Well-Rested.
+- Warnings: an icon pulses in its buff's last minute, with a quiet chat line, and another line when Well-Rested, Camp Benefits or your XP food runs out. Turn off in Settings → Warnings.
+- At level 60 the Rest and 5% XP icons hide themselves (they do nothing there). Settings → Hide XP icons at level 60.
+- Camp object tooltips now also say when you already have the class buff a camp buff doesn't stack with, your Camp Tent cooldown, and when you can place your next camp object.
+- XP food is recognized on German, French, Spanish, Italian, Portuguese, Russian, Korean and Chinese clients too.
+- Fixed: thin light lines at the side of the Bag icon.
+
 ## 0.8.0 (2026-11-17)
 - Toasty's folder is now **ToastyBuffs** (it shows as "Toasty Buffs" in your addon list and options), so it can't clash with the other Forever addon called Toasty.
 - Updating by hand: delete the old **Toasty** folder from Interface\AddOns. Addon managers handle it for you. Your settings start fresh unless you copy them over (see the README).

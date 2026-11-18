@@ -5,7 +5,7 @@
 -- Always off after a reload. Settings > Testing > Demo icons, or /toasty demo.
 local _, ns = ...
 
-local D = { s = {}, bags = 0, bagFood = nil }
+local D = { s = {}, bags = 0, bagFood = nil, sleep = nil }
 ns.Demo = D
 
 local SECONDS_PER_SCENE = 5
@@ -29,10 +29,14 @@ local SCENES = {
   { text = "No Well-Rested: sleeping bag button; by a campfire; tent ready; eat button", build = function()
       return { nearby = Buff("nearby") }, 2, { icon = "Interface\\Icons\\INV_Misc_Food_15", count = 6 }
     end },
+  { text = "Resting on your sleeping bag: 1/3, the next stack counts down", build = function()
+      return { wellRested = Buff("wellRested", 7190, 7200, 1), nearby = Buff("nearby") }, 1, nil,
+        { nextAt = GetTime() + 42, next = 2 }
+    end },
   { text = "No sleeping bag; no camp buffs; no food", build = function()
       return {}, 0
     end },
-  { text = "Buffs running out (white under a minute)", build = function()
+  { text = "Buffs running out: the icons pulse in their last minute", build = function()
       return { wellRested = Buff("wellRested", 42, 1800, 1), benefits = Buff("benefits", 25, 1800),
         boosted = Buff("boosted", 50, 3600), food = Food(35) }, 1
     end },
@@ -42,7 +46,7 @@ local scene, ticker
 
 local function Apply(i)
   local sc = SCENES[i]
-  D.s, D.bags, D.bagFood = sc.build()
+  D.s, D.bags, D.bagFood, D.sleep = sc.build()
   ns.Print("Demo " .. i .. "/" .. #SCENES .. ": " .. sc.text .. ".")
   ns.Fire("STATUS_CHANGED")
 end
@@ -62,7 +66,7 @@ function D:Stop()
   if not self.active then return end
   self.active = false
   if ticker then ticker:Cancel(); ticker = nil end
-  D.s, D.bags, D.bagFood = {}, 0, nil
+  D.s, D.bags, D.bagFood, D.sleep = {}, 0, nil, nil
   ns.Print("Demo off.")
   ns.Fire("STATUS_CHANGED")
 end

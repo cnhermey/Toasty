@@ -29,6 +29,16 @@ ns.Status = S
 
 S.BAG_ITEM = 211527
 S.BAG_ICON = "Interface\\Icons\\INV_Misc_Bag_BigBagOfEnchantments"
+S.BAG_STACKS = 3   -- Well-Rested stacks to 3 (+3% XP); EllesmereUI agrees (SLEEPING_BAG_STACKS)
+
+-- Well-Rested stacks you have (1 when it reads 0), 0 without the buff.
+function S:BagStacks(a)
+  a = a or self.s.wellRested
+  if not a then return 0 end
+  local n = a.stacks
+  if not n or n < 1 then n = 1 end
+  return n
+end
 
 S.AURAS = {
   wellRested = { id = 429959,  name = "Well-Rested",     filter = "HELPFUL" },

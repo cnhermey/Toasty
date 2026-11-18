@@ -21,13 +21,18 @@ Copy these into the CurseForge project form (Author Console → Create Project).
 - **Rest: Boosted Rest.** The Camp Tent's rested XP cooldown. Gray means a tent can give you more rested XP.
 - **5% XP: Nutritious food.** Well Fed with +5% experience from kills. Without it, click to eat your best Nutritious food.
 
+**Sleeping bag countdown:** after you lay out your Cozy Sleeping Bag, the Bag icon counts down the minute to each Well-Rested stack ("Bag 1/3" to "Bag 3/3"), so you know exactly when to get up.
+
 When all four are lit, "Toasty" turns red with a little campfire on each side.
+
+### Warnings
+In a buff's last minute its icon pulses and a quiet chat line tells you, and another line says when Well-Rested, Camp Benefits or your XP food runs out. At level 60 the XP icons hide themselves.
 
 ### Works in combat
 Forever hides buff details from addons in combat, so Toasty lets the game draw the buffs itself: the icons stay accurate mid-fight.
 
 ### Camp object tooltips
-Hover any camp object or campfire in the world to see its profession and tier, what it does, what it includes from the tier below, and which class buff it doesn't stack with.
+Hover any camp object or campfire in the world to see its profession and tier, what it does, what it includes from the tier below, and which class buff it doesn't stack with. It also tells you when you already have that class buff, your Camp Tent cooldown, and when you can place your next camp object.
 
 ### Looks like Blizzard's UI
 Blizzard's icons, fonts, tooltip border and sounds. Move it with Shift-drag, resize it, or turn off the name and border for bare icons.

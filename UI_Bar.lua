@@ -36,7 +36,6 @@ local PAD_BOTTOM = 6   -- under the time text
 local SUB_H = 13       -- the short label over each icon (Settings > Icon labels)
 local SUBHEADS = { "Bag", "Buffs", "Rest", "5% XP" }
 local COUNT = 4
-local ROW_W = SIZE * COUNT + GAP * (COUNT - 1)
 local WARN = BUFF_DURATION_WARNING_TIME or 60   -- white text under a minute
 
 ---------------------------------------------------------------------------
@@ -66,15 +65,27 @@ function B:ApplyLayout()
     -- Short labels over the icons ("Bag", "Buffs", "Rest", "5% XP").
     local subs = ns.db.iconLabels
     if subs then top = top + SUB_H end
-    for _, slot in ipairs(self.slots) do slot.subhead:SetShown(subs) end
+
     local side = framed and PAD_X or 0
-    f:SetSize(ROW_W + side * 2, top + SIZE + DURATION_H + (framed and PAD_BOTTOM or 0))
+    -- At max level the XP icons (Rest, 5% XP) go: they do nothing there.
+    local n = self:VisibleCount()
+    for i, slot in ipairs(self.slots) do
+      slot:SetShown(i <= n)
+      slot.subhead:SetShown(subs and i <= n)
+    end
+    local rowW = SIZE * n + GAP * (n - 1)
+    f:SetSize(rowW + side * 2, top + SIZE + DURATION_H + (framed and PAD_BOTTOM or 0))
     self.slots[1]:ClearAllPoints()
     self.slots[1]:SetPoint("TOPLEFT", f, "TOPLEFT", side, -top)
     UI.Plate(f, framed)
     f.title:SetShown(framed)
     f:SetShown(ns.db.enabled)
   end)
+end
+
+function B:VisibleCount()
+  if ns.db.hideXPAtMax and ns.AtMaxLevel() and not ns.Demo.active then return 2 end
+  return COUNT
 end
 
 function B:ResetPosition()
@@ -150,6 +161,9 @@ local function MakeSlot(parent, secure)
   b:SetSize(SIZE, SIZE)
   b.icon = b:CreateTexture(nil, "BACKGROUND")
   b.icon:SetAllPoints()
+  -- Trim the icon art's built-in light edge (it showed as thin lines at the
+  -- side of the Bag icon); the game-drawn icons get the same crop.
+  b.icon:SetTexCoord(UI.CROP[1], UI.CROP[2], UI.CROP[3], UI.CROP[4])
   b.count = b:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
   b.count:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -2, 2)
   b.duration = b:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -164,12 +178,48 @@ local function MakeSlot(parent, secure)
   b:RegisterForDrag("LeftButton")
   b:SetScript("OnDragStart", OnDragStart)
   b:SetScript("OnDragStop", OnDragStop)
+
+  -- On top of everything, the game-drawn buff included: the warning pulse
+  -- (Alerts.lua) and, on icon 1, the sleeping bag countdown. Mouse passes
+  -- through.
+  local top = CreateFrame("Frame", nil, b)
+  top:SetAllPoints(b)
+  top:SetFrameLevel(b:GetFrameLevel() + 12)
+  top:EnableMouse(false)
+  b.top = top
+  local glow = top:CreateTexture(nil, "OVERLAY")
+  glow:SetPoint("TOPLEFT", b, "TOPLEFT", -3, 3)
+  glow:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 3, -3)
+  glow:SetTexture("Interface\\Buttons\\CheckButtonHilight")
+  glow:SetBlendMode("ADD")
+  glow:SetVertexColor(1, 0.55, 0.1)
+  glow:SetAlpha(0)
+  local pulse = glow:CreateAnimationGroup()
+  pulse:SetLooping("BOUNCE")
+  local fade = pulse:CreateAnimation("Alpha")
+  fade:SetFromAlpha(0.15)
+  fade:SetToAlpha(0.95)
+  fade:SetDuration(0.6)
+  top.glow, top.pulse = glow, pulse
   return b
+end
+
+-- Pulse an icon (a buff in its last minute). Plain frames: fine in combat.
+function B:SetWarning(index, on)
+  local slot = self.slots[index]
+  if not slot then return end
+  local top = slot.top
+  if on and not top.pulse:IsPlaying() then
+    top.pulse:Play()
+  elseif not on and top.pulse:IsPlaying() then
+    top.pulse:Stop()
+    top.glow:SetAlpha(0)
+  end
 end
 
 local function Build()
   local f = CreateFrame("Frame", "ToastyBuffsBar", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
-  f:SetSize(ROW_W, SIZE + DURATION_H)
+  f:SetSize(SIZE * COUNT + GAP * (COUNT - 1), SIZE + DURATION_H)
   f:SetMovable(true)
   f:SetClampedToScreen(true)
   f:SetFrameStrata("LOW")
@@ -205,6 +255,17 @@ local function Build()
   B.slots[3]:SetPoint("TOPLEFT", B.slots[2], "TOPRIGHT", GAP, 0)
   B.slots[4] = MakeSlot(f, "ToastyBuffsFoodButton")
   B.slots[4]:SetPoint("TOPLEFT", B.slots[3], "TOPRIGHT", GAP, 0)
+
+  -- The sleeping bag countdown on icon 1: a cooldown swipe for the minute
+  -- to the next Well-Rested stack, and the seconds in the middle.
+  local top = B.slots[1].top
+  top.cd = CreateFrame("Cooldown", nil, top, "CooldownFrameTemplate")
+  top.cd:SetAllPoints(top)
+  if top.cd.SetHideCountdownNumbers then top.cd:SetHideCountdownNumbers(true) end
+  if top.cd.SetDrawEdge then top.cd:SetDrawEdge(false) end
+  top.cd:Hide()
+  top.timer = top:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+  top.timer:SetPoint("CENTER", top, "CENTER", 0, 0)
 
   -- Each icon's short label, centered over it in Blizzard's small font.
   for i, slot in ipairs(B.slots) do
@@ -245,7 +306,15 @@ end
 
 local function SleepView(s, bags)
   local S = ns.Status
-  if s.wellRested then return BuffView(s.wellRested, "wellRested") end
+  if s.wellRested then
+    local v = BuffView(s.wellRested, "wellRested")
+    local n = S:BagStacks(s.wellRested)
+    if n < S.BAG_STACKS then
+      v.hint = n .. "/" .. S.BAG_STACKS .. " stacks. Keep resting on your sleeping bag: one more stack a minute, up to +"
+        .. S.BAG_STACKS .. "% XP."
+    end
+    return v
+  end
   if bags > 0 then
     return {
       icon = S.BAG_ICON, item = S.BAG_ITEM, stacks = bags > 1 and bags or nil, useBag = true,
@@ -360,12 +429,61 @@ function B:BagArmed() return self.actions[1] == ns.Status.BAG_ITEM end
 -- Read from Toasty's own buff state, also when the game draws the icons.
 function B:ApplyToasty(s, food)
   local f = self.frame
-  local all = s.wellRested and s.benefits and s.boosted and food and true or false
+  local S = ns.Status
+  -- A full sleeping bag (3 stacks) counts; at max level only Bag and Buffs.
+  local bag = s.wellRested and S:BagStacks(s.wellRested) >= S.BAG_STACKS
+  local all
+  if self:VisibleCount() < COUNT then
+    all = bag and s.benefits and true or false
+  else
+    all = bag and s.benefits and s.boosted and food and true or false
+  end
   local c = all and UI.RED or UI.GOLD
   f.title:SetTextColor(c.r, c.g, c.b)
   local show = all and ns.db.framed
   for _, t in ipairs(f.fires) do t:SetShown(show) end
   self.toasty = all
+end
+
+-- Icon 1 extras: "Bag 2/3" while the sleeping bag isn't full, and the
+-- countdown to the next stack after you use the bag (Sleep.lua).
+function B:PaintBagProgress(truth)
+  local S, slot = ns.Status, self.slots[1]
+  local n = S:BagStacks(truth.wellRested)
+  local left, nextStack, moving
+  if ns.Demo.active then
+    local d = ns.Demo.sleep
+    if d then left, nextStack = math.max(0, d.nextAt - GetTime()), d.next end
+  else
+    left, nextStack, moving = ns.Sleep:Countdown()
+  end
+  local waiting = left or moving
+  if (truth.wellRested and n < S.BAG_STACKS) or waiting then
+    slot.subhead:SetText("Bag " .. n .. "/" .. S.BAG_STACKS)
+    slot.subhead:SetTextColor(UI.YELLOW.r, UI.YELLOW.g, UI.YELLOW.b)
+  else
+    slot.subhead:SetText(SUBHEADS[1])
+    slot.subhead:SetTextColor(0.82, 0.82, 0.82)
+  end
+  local top = slot.top
+  if moving then
+    top.cd:Hide()
+    top.cdStart = nil
+    top.timer:SetText("still")
+    top.timer:SetTextColor(UI.YELLOW.r, UI.YELLOW.g, UI.YELLOW.b)
+  elseif left then
+    local start = math.floor((GetTime() - (60 - left)) * 10 + 0.5) / 10
+    if top.cdStart ~= start then
+      top.cdStart = start
+      top.cd:SetCooldown(start, 60)
+      top.cd:Show()
+    end
+    top.timer:SetText(math.ceil(left))
+    top.timer:SetTextColor(1, 1, 1)
+  else
+    if top.cdStart then top.cd:Hide(); top.cdStart = nil end
+    top.timer:SetText("")
+  end
 end
 
 function B:Refresh()
@@ -390,8 +508,14 @@ function B:Refresh()
   local realFood = FoodView(F.s, F.bag)
   self:ApplyAction(4, realFood.useItem)
 
+  local truth = ns.Demo.active and ns.Demo.s or S.s   -- what you really have
   local v1 = SleepView(s, bags)
+  if engine and truth.wellRested then
+    -- The game draws Well-Rested here: leave nothing underneath to peek out.
+    v1 = { icon = nil, title = S:Name("wellRested") }
+  end
   Paint(self.slots[1], v1)
+  self:PaintBagProgress(truth)
   local cd = self.slots[1].cooldown
   if v1.useBag and not ns.Demo.active then
     local start, duration = S:BagCooldown()
@@ -425,6 +549,13 @@ ns.Listen("LOGIN", function()
 end)
 ns.Listen("STATUS_CHANGED", function() B:Refresh() end)
 ns.Listen("SETTINGS_CHANGED", function(key)
-  if key == "scale" or key == "enabled" or key == "framed" or key == "iconLabels" then B:ApplyLayout() end
+  if key == "scale" or key == "enabled" or key == "framed" or key == "iconLabels" or key == "hideXPAtMax" or key == "demo" then
+    B:ApplyLayout()
+  end
   B:Refresh()
+end)
+
+-- Reaching max level drops the XP icons (out of combat).
+ns.On("PLAYER_LEVEL_UP", function()
+  C_Timer.After(0.5, function() B:ApplyLayout(); B:Refresh() end)
 end)
