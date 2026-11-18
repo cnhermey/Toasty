@@ -121,6 +121,8 @@ end
 local function SlotTooltip(self)
   local v = self.view
   if not v then return end
+  -- A game-drawn buff over this icon shows the game's own tooltip.
+  if ns.Engine:Covers(self) then B.tipsYielded = (B.tipsYielded or 0) + 1; return end
   GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
   local done = false
   if v.instance and not ns.Demo.active then
@@ -143,6 +145,39 @@ local function SlotTooltip(self)
   if v.hint then GameTooltip:AddLine(v.hint, UI.GREEN.r, UI.GREEN.g, UI.GREEN.b, true) end
   TipFooter()
   GameTooltip:Show()
+end
+
+-- While an icon is hovered, a buff can start or end under the cursor: then
+-- hand the tooltip over (to the game's, or back to Toasty's). One shared
+-- watcher frame, not OnUpdate on the icons (two are secure buttons).
+local watch = CreateFrame("Frame")
+watch:Hide()
+local elapsedSince = 0
+watch:SetScript("OnUpdate", function(_, elapsed)
+  elapsedSince = elapsedSince + elapsed
+  if elapsedSince < 0.1 then return end
+  elapsedSince = 0
+  local slot = watch.slot
+  if not slot then watch:Hide(); return end
+  local ours = GameTooltip:IsShown() and GameTooltip:GetOwner() == slot
+  local covered = ns.Engine:Covers(slot)
+  if covered and ours then
+    GameTooltip:Hide()
+  elseif not covered and not ours then
+    SlotTooltip(slot)
+  end
+end)
+
+local function HoverStart(self)
+  watch.slot = self
+  elapsedSince = 0
+  watch:Show()
+  SlotTooltip(self)
+end
+
+local function HoverStop(self)
+  if watch.slot == self then watch.slot = nil; watch:Hide() end
+  if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
 end
 
 ---------------------------------------------------------------------------
@@ -178,8 +213,8 @@ local function MakeSlot(parent, secure)
   b.label:SetPoint("CENTER", b, "CENTER", 0, 0)
   b.label:SetWidth(SIZE + 4)
   b.label:SetTextColor(0.8, 0.8, 0.8)
-  b:SetScript("OnEnter", SlotTooltip)
-  b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  b:SetScript("OnEnter", HoverStart)
+  b:SetScript("OnLeave", HoverStop)
   b:RegisterForDrag("LeftButton")
   b:SetScript("OnDragStart", OnDragStart)
   b:SetScript("OnDragStop", OnDragStop)

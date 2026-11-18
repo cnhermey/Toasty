@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 (2026-11-18)
+- Fixed two tooltips drawing over each other when you hover an icon with an active buff. Now you see only the game's buff tooltip. If a buff starts or ends while you hover, the tooltip switches over.
+- Fixed an error at login that could stop the game-drawn icons from hiding in demo mode.
+
 ## 0.10.0 (2026-11-17)
 - New look: the panel now wears WoW Forever's bronze window frame, with "Toasty" in its title bar, and each icon gets Forever's bronze action button ring.
 - Settings → Border style: Forever bronze (new default), Forever slim (a thinner bronze line) or Tooltip (the old look).

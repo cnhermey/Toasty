@@ -1,4 +1,4 @@
-# Toasty Buffs (v0.10.0)
+# Toasty Buffs (v0.10.1)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -101,5 +101,6 @@ Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.
 - Fallback only: that `C_UnitAuras.GetPlayerAuraBySpellID` finds the buffs in combat: run `/toasty probe` during a fight. "by-ID lookup worked in combat yes" means icons stay exact in combat; "not yet" with "kept" buffs means Toasty is holding the last known state.
 - That Boosted Rest is a debuff with a timer, and that you can get rested XP from a tent again once it's gone (icon 3 gray).
 - That clicking the bag icon uses the bag once, not twice or never. Probe shows "button uses bag" and your "cast on key down" setting.
+- That hovering an icon with an active buff shows only one tooltip, in and out of combat. Probe "tooltips left to the game" should go up each time you hover one.
 - That camp objects show a tooltip when hovered at all (some world objects don't), and that the tooltip's first line is the object's plain name. Probe "Object tooltips" shows how many were explained, and the title of the last world tooltip that wasn't a known object, so a different name can be added.
 - What the Faction Banner is called in game, and the First Aid Kit's Stamina amount (the guide gives no number).

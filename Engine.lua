@@ -25,13 +25,21 @@
 -- button: anchor it yourself in that callback (EllesmereUI does
 -- button:SetAllPoints(proxy)), or it draws nowhere (0.4.0's bug). Clicks are turned off on the engine buttons, so a click
 -- or Shift-drag goes through to Toasty's icon underneath; hovering shows the
--- game's own buff tooltip.
+-- game's own buff tooltip. Toasty's icon underneath can still get the hover
+-- too, so it skips its own tooltip while a game-drawn buff covers it
+-- (E:Covers), or two tooltips draw over each other (0.10.0's bug).
 -- When the client has no aura containers, Toasty falls back to its own
 -- aura reading (Status.lua) and nothing here runs.
 local _, ns = ...
 
 local E = { layers = {}, buttons = 0, errors = {} }
 ns.Engine = E
+
+-- Engine buttons per Toasty icon (host frame -> list). Kept here, never as
+-- fields on the buttons (the engine refuses those).
+local covers = {}
+
+local Apply   -- defined below; E:Build calls it
 
 
 -- Which engine slots sit on which icon, bottom to top.
@@ -86,6 +94,8 @@ end
 ---------------------------------------------------------------------------
 local function Init(button, host)
   E.buttons = E.buttons + 1
+  covers[host] = covers[host] or {}
+  table.insert(covers[host], button)
   local ok, err = pcall(function()
     -- Two-point anchors: the button covers Toasty's icon, and follows it.
     button:ClearAllPoints()
@@ -208,7 +218,21 @@ function E:Active()
   return self.built == true and ns.db.engine and not ns.Demo.active
 end
 
-local function Apply()
+-- True when a game-drawn buff is showing over this Toasty icon, so the
+-- game's tooltip is the one to show. A visibility the game hides (secret)
+-- counts as covered: better one tooltip than two.
+function E:Covers(host)
+  if not self:Active() then return false end
+  local list = covers[host]
+  if not list then return false end
+  for _, button in ipairs(list) do
+    local ok, vis = pcall(button.IsVisible, button)
+    if ok and (ns.IsSecret(vis) or vis) then return true end
+  end
+  return false
+end
+
+function Apply()
   if not E.built then return end
   if ns.db.engine and not ns.db.demo then E:Show() else E:Teardown() end
 end

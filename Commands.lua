@@ -59,6 +59,7 @@ local function Probe()
     .. " · setting " .. (ns.db.engine and "on" or Gray("off"))
     .. (En.reason and (" · " .. En.reason) or "")
     .. " · layers " .. #En.layers .. " (+food " .. tostring(En.foodBuilds or 0) .. ") · buttons made " .. En.buttons
+    .. " · tooltips left to the game " .. tostring(B.tipsYielded or 0)
     .. (#errs > 0 and (" · errors " .. No(table.concat(errs, "; "))) or ""))
   P("  Border: setting " .. tostring(ns.db.borderStyle) .. " · drawn " .. ns.Frame:Style() .. " · art: " .. ns.Frame:Report())
   P("  Combat: in combat " .. tostring(InCombatLockdown() and true or false)
