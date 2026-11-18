@@ -27,12 +27,8 @@ ns.Bar = B
 local SIZE = 30      -- Blizzard's buff icon size
 local GAP = 6
 local DURATION_H = 14
--- The panel around the icons (Settings > Name and border).
-local PAD_X = 12       -- left and right of the icons
-local PAD_TOP = 9      -- above the name
-local TITLE_H = 14     -- the name's line
-local TITLE_GAP = 5    -- name to icons
-local PAD_BOTTOM = 6   -- under the time text
+-- The panel's padding and the name's place come from the Border style
+-- (ns.Frame:Metrics in UI_Frame.lua).
 local SUB_H = 13       -- the short label over each icon (Settings > Icon labels)
 local SUBHEADS = { "Bag", "Buffs", "Rest", "5% XP" }
 local COUNT = 4
@@ -59,14 +55,18 @@ function B:ApplyLayout()
       f:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -220, -150)
     end
     f:SetScale((ns.db.scale or 100) / 100)
-    -- Name and border: a tooltip-style panel with "Toasty" over the icons.
-    local framed = ns.db.framed
-    local top = framed and (PAD_TOP + TITLE_H + TITLE_GAP) or 0
+    -- Name and border, in the chosen Border style (UI_Frame.lua): Forever's
+    -- bronze window rim with "Toasty" in its title bar, Forever's slim line,
+    -- or the tooltip border.
+    local style = ns.Frame:Style()
+    local M = ns.Frame:Metrics(style)
+    local framed = style ~= "none"
+    local top = M.top
     -- Short labels over the icons ("Bag", "Buffs", "Rest", "5% XP").
     local subs = ns.db.iconLabels
     if subs then top = top + SUB_H end
 
-    local side = framed and PAD_X or 0
+    local side = M.side
     -- At max level the XP icons (Rest, 5% XP) go: they do nothing there.
     local n = self:VisibleCount()
     for i, slot in ipairs(self.slots) do
@@ -74,10 +74,15 @@ function B:ApplyLayout()
       slot.subhead:SetShown(subs and i <= n)
     end
     local rowW = SIZE * n + GAP * (n - 1)
-    f:SetSize(rowW + side * 2, top + SIZE + DURATION_H + (framed and PAD_BOTTOM or 0))
+    f:SetSize(rowW + side * 2, top + SIZE + DURATION_H + M.bottom)
+    -- Forever's action button ring on each icon, with the bronze styles.
+    local rings = (style == "bronze" or style == "slim") and ns.Frame:IconRingOK()
+    for _, slot in ipairs(self.slots) do slot.top.ring:SetShown(rings) end
     self.slots[1]:ClearAllPoints()
     self.slots[1]:SetPoint("TOPLEFT", f, "TOPLEFT", side, -top)
-    UI.Plate(f, framed)
+    ns.Frame:Apply(style)
+    f.title:ClearAllPoints()
+    f.title:SetPoint("CENTER", f, "TOP", 0, -M.titleY)
     f.title:SetShown(framed)
     f:SetShown(ns.db.enabled)
   end)
@@ -187,12 +192,22 @@ local function MakeSlot(parent, secure)
   top:SetFrameLevel(b:GetFrameLevel() + 12)
   top:EnableMouse(false)
   b.top = top
+  -- Forever's action button ring (bronze on Forever), over the game-drawn
+  -- buff too. Shown with the bronze and slim Border styles.
+  local ring = top:CreateTexture(nil, "ARTWORK")
+  ring:SetPoint("TOPLEFT", b, "TOPLEFT", 0, 0)
+  ring:SetSize(SIZE * 46 / 45, SIZE)   -- the atlas's shape (46 x 45 on a 45 button)
+  if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("UI-HUD-ActionBar-IconFrame") then
+    ring:SetAtlas("UI-HUD-ActionBar-IconFrame")
+  end
+  ring:Hide()
+  top.ring = ring
   local glow = top:CreateTexture(nil, "OVERLAY")
   glow:SetPoint("TOPLEFT", b, "TOPLEFT", -3, 3)
   glow:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 3, -3)
   glow:SetTexture("Interface\\Buttons\\CheckButtonHilight")
   glow:SetBlendMode("ADD")
-  glow:SetVertexColor(1, 0.55, 0.1)
+  glow:SetVertexColor(1, 0.72, 0.35)   -- warm bronze, like Forever's highlights
   glow:SetAlpha(0)
   local pulse = glow:CreateAnimationGroup()
   pulse:SetLooping("BOUNCE")
@@ -230,9 +245,12 @@ local function Build()
   f:SetScript("OnDragStop", OnDragStop)
   B.frame = f
 
+  -- The border art (built once, shown per Border style).
+  ns.Frame:Build(f)
+
   -- The name, gold like Blizzard's window titles, centered over the icons.
   f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  f.title:SetPoint("TOP", f, "TOP", 0, -PAD_TOP)
+  f.title:SetPoint("CENTER", f, "TOP", 0, -16)   -- placed again by ApplyLayout
   f.title:SetText("Toasty")
 
   -- All four lit: a small campfire icon on each side of the name.
@@ -389,7 +407,8 @@ local function Paint(slot, v)
   slot.view = v
   slot.icon:SetTexture(v.icon)
   slot.icon:SetDesaturated(v.gray and true or false)
-  slot.icon:SetVertexColor(v.gray and 0.6 or 1, v.gray and 0.6 or 1, v.gray and 0.6 or 1)
+  local dim = v.gray and 0.5 or 1   -- gray and dim, like an unusable action button
+  slot.icon:SetVertexColor(dim, dim, dim)
   slot.count:SetText(v.stacks and v.stacks > 1 and v.stacks or "")
   slot.label:SetText(v.text or "")
   if v.text then
@@ -549,7 +568,8 @@ ns.Listen("LOGIN", function()
 end)
 ns.Listen("STATUS_CHANGED", function() B:Refresh() end)
 ns.Listen("SETTINGS_CHANGED", function(key)
-  if key == "scale" or key == "enabled" or key == "framed" or key == "iconLabels" or key == "hideXPAtMax" or key == "demo" then
+  if key == "scale" or key == "enabled" or key == "framed" or key == "borderStyle" or key == "iconLabels"
+    or key == "hideXPAtMax" or key == "demo" then
     B:ApplyLayout()
   end
   B:Refresh()

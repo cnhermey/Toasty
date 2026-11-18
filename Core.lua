@@ -68,6 +68,7 @@ ns.DEFAULTS = {
   locked = false,          -- no Shift-drag
   scale = 100,             -- icon bar size in percent
   framed = true,           -- "Toasty" name and a bordered panel around the icons
+  borderStyle = "bronze",  -- "bronze" (Forever's window rim), "slim" (Forever's line), "tooltip"
   iconLabels = true,       -- "Bag", "Buffs", "Rest", "5% XP" over the icons
   barPoint = nil,          -- { point, relPoint, x, y } after a Shift-drag
   objectTips = true,       -- explain camp objects when you hover them in the world

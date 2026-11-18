@@ -34,8 +34,8 @@ Forever hides buff details from addons in combat, so Toasty lets the game draw t
 ### Camp object tooltips
 Hover any camp object or campfire in the world to see its profession and tier, what it does, what it includes from the tier below, and which class buff it doesn't stack with. It also tells you when you already have that class buff, your Camp Tent cooldown, and when you can place your next camp object.
 
-### Looks like Blizzard's UI
-Blizzard's icons, fonts, tooltip border and sounds. Move it with Shift-drag, resize it, or turn off the name and border for bare icons.
+### Looks like WoW Forever's UI
+Drawn with WoW Forever's own bronze window frame and action button rings (or a slim bronze line, or a classic tooltip border), with Blizzard's icons, fonts and sounds. Move it with Shift-drag, resize it, or turn off the name and border for bare icons.
 
 ### Commands
 - `/toasty`: settings

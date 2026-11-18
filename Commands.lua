@@ -60,6 +60,7 @@ local function Probe()
     .. (En.reason and (" · " .. En.reason) or "")
     .. " · layers " .. #En.layers .. " (+food " .. tostring(En.foodBuilds or 0) .. ") · buttons made " .. En.buttons
     .. (#errs > 0 and (" · errors " .. No(table.concat(errs, "; "))) or ""))
+  P("  Border: setting " .. tostring(ns.db.borderStyle) .. " · drawn " .. ns.Frame:Style() .. " · art: " .. ns.Frame:Report())
   P("  Combat: in combat " .. tostring(InCombatLockdown() and true or false)
     .. " · by-ID lookup worked in combat " .. (S.byIDInCombat and Yes("yes") or Gray("not yet"))
     .. " · unreadable auras last scan " .. S.seen.unreadable

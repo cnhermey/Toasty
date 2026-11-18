@@ -1,4 +1,4 @@
-# Toasty Buffs (v0.9.0)
+# Toasty Buffs (v0.10.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -20,8 +20,9 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with. It also tells you about you: when you already have that class buff (so the camp buff won't add to it), your Camp Tent cooldown, and when you can place your own next camp object.
 - **Settings** in Esc → Options → AddOns → Toasty Buffs (or `/toasty`).
 
-### Looks like Blizzard's UI
-- The icons sit in a tooltip-style panel (Blizzard's tooltip background and border) with "Toasty" in gold above them. Settings → **Name and border** turns the panel off for bare icons.
+### Looks like WoW Forever's UI
+- The icons sit in a panel drawn with WoW Forever's own art: by default the **bronze rim of Forever's windows**, with "Toasty" in its title bar, and Forever's bronze **action button ring** around each icon. Settings → **Border style** switches to **Forever slim** (Forever's thin bronze line) or **Tooltip** (Blizzard's tooltip border). **Name and border** turns the panel off for bare icons.
+- Forever repaints several stock Blizzard art pieces in bronze; Toasty draws those pieces, following EllesmereUI's measurements. A style whose art is missing falls back to Tooltip.
 - A short label over each icon says what it is: **Bag**, **Buffs**, **Rest**, **5% XP** (Settings → **Icon labels**).
 - The icons are drawn like the buff bar: 30 px icons, the stack count in Blizzard's number font at the bottom right, and the time left under the icon in the buff bar's font, written the same way ("12 m", "45 s"), turning white under a minute.
 - Hovering an icon shows Blizzard's own buff, debuff, item or spell tooltip.
@@ -74,6 +75,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 | `Food.lua` | The XP food buff: Well Fed (by name, icon 136000, or the food buffs not named Well Fed) whose tooltip mentions experience, learned per spell ID; the best Nutritious food in your bags (items whose use spell is Nutritious Food, 1248377, as EllesmereUI finds them) |
 | `Objects.lua` | What every camp object and campfire does; adds it to the game tooltip for world objects (`TooltipDataProcessor` for objects when the client has it, else `GameTooltip` `OnShow` when the tooltip belongs to the world) |
 | `Engine.lua` | Game-drawn buff layers: an `AuraContainer` (`CustomAuraContainerTemplate`) per buff with one aura slot limited to its spell IDs (`candidateFilters.includeSpellIDs`), set up in the slot's `initializeFrame` |
+| `UI_Frame.lua` | The panel border per Border style: Forever's window rim (`UI-Frame-Metal` pieces, title bar included, at 75% size), Forever's slim line (`UI-HUD-ActionBar-Frame` cut into corners and edges) or the tooltip border |
 | `UI_Bar.lua` | The four icons; icons 1 and 4 are `SecureActionButtonTemplate`s that use the bag or eat the food |
 | `Options.lua` | Settings page in Esc → Options → AddOns, through one setter (`ns.Options:Set`) |
 | `Demo.lua` | The demo icons (`/toasty demo`) |
@@ -82,6 +84,8 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.1). Edit `DATA` at the top of `Objects.lua` to change them.
 
 ## Needs in-game verification
+- The bronze border: that it lines up (no gaps at the corners, the title bar behind "Toasty"), and the slim style too. Probe "Border" shows which style is drawn and which art exists.
+- The bronze ring on each icon (Forever's action button frame) fits the 30 px icons.
 - The sleeping bag countdown: that using the bag is seen (probe "Sleeping bag": "bag uses seen 1"), that a stack arrives about when the countdown hits 0, and whether moving off the bag and back really restarts the minute.
 - That a single Well-Rested stack reads as 1 (or 0) stacks, so "Bag 1/3" is right.
 - Camp object tooltips: "You have Arcane Intellect..." when you do, and "Your next camp object" after you place one (probe: "next camp object").

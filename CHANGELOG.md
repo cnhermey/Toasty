@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0 (2026-11-17)
+- New look: the panel now wears WoW Forever's bronze window frame, with "Toasty" in its title bar, and each icon gets Forever's bronze action button ring.
+- Settings → Border style: Forever bronze (new default), Forever slim (a thinner bronze line) or Tooltip (the old look).
+- Gray icons are dimmer, like an unusable action button, and the last-minute pulse is warm bronze.
+
 ## 0.9.0 (2026-11-17)
 - Sleeping bag countdown: after you lay out your Cozy Sleeping Bag, the Bag icon counts down the minute to each Well-Rested stack, and the label shows "Bag 1/3", "Bag 2/3" until it's full. Moving pauses it.
 - "Toasty" only turns red with a full 3/3 Well-Rested.

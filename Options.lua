@@ -29,6 +29,10 @@ local LAYOUT = {
       tip = "Well-Rested (or your sleeping bag), Camp Benefits and Boosted Rest, like your buff bar. Changes wait until you leave combat." },
     { kind = "check", key = "framed",  label = "Name and border",
       tip = "Show \"Toasty\" above the icons, in a panel with a border. Changes wait until you leave combat." },
+    { kind = "cycle", key = "borderStyle", label = "Border style",
+      values = { "bronze", "slim", "tooltip" },
+      names = { bronze = "Forever bronze", slim = "Forever slim", tooltip = "Tooltip" },
+      tip = "Forever bronze: the rim of Forever's windows, with Toasty in its title bar. Forever slim: Forever's thin bronze line. Tooltip: Blizzard's tooltip border. Changes wait until you leave combat." },
     { kind = "check", key = "iconLabels", label = "Icon labels",
       tip = "Show Bag, Buffs, Rest and 5% XP over the icons. Changes wait until you leave combat." },
     { kind = "check", key = "locked",  label = "Lock position",
@@ -166,6 +170,42 @@ local function MakeButton(page, item)
   return b, BUTTON_H
 end
 
+-- A choice among a few values: its label, then a button showing the current
+-- one; a click moves to the next.
+local function MakeCycle(page, item)
+  local holder = CreateFrame("Frame", nil, page)
+  holder:SetSize(220, 44)
+  local fs = holder:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  fs:SetPoint("TOPLEFT", holder, "TOPLEFT", 4, -2)
+  fs:SetText(item.label)
+  local b = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
+  b:SetSize(item.width or 150, 22)
+  b:SetPoint("TOPLEFT", fs, "BOTTOMLEFT", 0, -4)
+  local function Current()
+    local v = ns.db[item.key]
+    for i, c in ipairs(item.values) do if c == v then return i end end
+    return 1
+  end
+  b:SetScript("OnClick", function()
+    ns.UI.PlaySound("IG_MAINMENU_OPTION")
+    local nextV = item.values[Current() % #item.values + 1]
+    O:Set(item.key, nextV)
+  end)
+  if item.tip then
+    b:SetScript("OnEnter", function(self)
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+      GameTooltip:SetText(item.label, 1, 1, 1)
+      GameTooltip:AddLine(item.tip, nil, nil, nil, true)
+      GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  end
+  page.refreshers[#page.refreshers + 1] = function()
+    b:SetText(item.names[item.values[Current()]] or tostring(ns.db[item.key]))
+  end
+  return holder, 50
+end
+
 local function MakeHeader(page, item)
   local fs = page:CreateFontString(nil, "OVERLAY", "GameFontNormal") -- gold, like Blizzard's option headers
   fs:SetText(item.header)
@@ -191,6 +231,9 @@ function O:BuildPage(parent)
       elseif item.kind == "slider" then
         widget, h = MakeSlider(page, item)
         widget:SetPoint("TOPLEFT", page, "TOPLEFT", x, y - 2)
+      elseif item.kind == "cycle" then
+        widget, h = MakeCycle(page, item)
+        widget:SetPoint("TOPLEFT", page, "TOPLEFT", x, y)
       elseif item.kind == "button" then
         widget, h = MakeButton(page, item)
         widget:SetPoint("TOPLEFT", page, "TOPLEFT", x + 4, y - 4)
