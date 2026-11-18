@@ -70,6 +70,7 @@ ns.DEFAULTS = {
   framed = true,           -- "Toasty" name and a bordered panel around the icons
   borderStyle = "bronze",  -- "bronze" (Forever's window rim), "slim" (Forever's line), "tooltip"
   iconLabels = true,       -- "Bag", "Buffs", "Rest", "5% XP" over the icons
+  onlyMissing = false,     -- hide an icon while you have its buff (it comes back in the last minute)
   barPoint = nil,          -- { point, relPoint, x, y } after a Shift-drag
   objectTips = true,       -- explain camp objects when you hover them in the world
   engine = true,           -- let the game draw the buffs (works in combat)

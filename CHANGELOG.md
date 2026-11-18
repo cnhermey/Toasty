@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0 (2026-11-18)
+- New setting: **Only show what's missing** (Settings → Icons). An icon hides while you have its buff (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest, XP food), so an icon on screen means "go get this". The other icons close up, and when you have everything the panel hides. An icon comes back in its buff's last minute. Off by default.
+- In combat, icons wait until the fight ends to hide or come back.
+
 ## 0.11.0 (2026-11-18)
 - Camp object tooltips now show what a buff gives **at your level**, and the level where it goes up next (for example "+11 Strength", "More at level 38: +20 Strength"). Before, they always showed the level 60 number.
 - This covers the Mana Well, Sharpening Wheel, First Aid Kit, Lodestone, Incense Candle, Faction Banner and Enchanted Lute. The Fish Bowl, Camp Chair and Camp Tent are the same at every level.

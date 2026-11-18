@@ -35,6 +35,8 @@ local LAYOUT = {
       tip = "Forever bronze: the rim of Forever's windows, with Toasty in its title bar. Forever slim: Forever's thin bronze line. Tooltip: Blizzard's tooltip border. Changes wait until you leave combat." },
     { kind = "check", key = "iconLabels", label = "Icon labels",
       tip = "Show Bag, Buffs, Rest and 5% XP over the icons. Changes wait until you leave combat." },
+    { kind = "check", key = "onlyMissing", label = "Only show what's missing",
+      tip = "Hide an icon while you have its buff: a full 3/3 Well-Rested, Camp Benefits, Boosted Rest, XP food. A showing icon means go get it. It comes back in the buff's last minute. Changes wait until you leave combat." },
     { kind = "check", key = "locked",  label = "Lock position",
       tip = "When unlocked, Shift-drag an icon to move them." },
     { kind = "slider", key = "scale", label = "Size", min = 70, max = 150, step = 5, suffix = "%" },

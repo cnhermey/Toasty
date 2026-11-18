@@ -108,6 +108,8 @@ local function Probe()
   P("  Icons shown " .. tostring(B.frame and B.frame:IsShown() or false)
     .. " · in combat " .. tostring(InCombatLockdown() and true or false)
     .. " · demo " .. tostring(ns.Demo.active == true)
+    .. " · only missing " .. (ns.db.onlyMissing and ("on, showing " .. (table.concat(B:ShownSlots(), ",") ~= "" and table.concat(B:ShownSlots(), ",") or "none")
+      .. " (laid out " .. tostring(B.layoutKey) .. ")") or "off")
     .. " · settings page " .. tostring(ns.Options.category ~= nil or ns.Options.canvas ~= nil))
 end
 

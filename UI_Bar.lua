@@ -14,6 +14,10 @@
 -- icons, in combat too; this file then paints only the idle state under
 -- them (bag button, "No bag", gray icons). Without them, it paints
 -- everything from Status.lua.
+-- Settings > Only show what's missing: an icon hides while you have its
+-- buff, so a showing icon means "go get it". Hiding, showing and closing up
+-- the row are layout changes, so in combat they wait (you can't rebuff
+-- mid-fight anyway).
 -- Icons 1 and 4 are SecureActionButtons (using an item needs one), so this bar is
 -- a protected frame: its position, size, visibility and the button's click
 -- action only change out of combat (queued with ns.AfterCombat). Icons and
@@ -67,30 +71,72 @@ function B:ApplyLayout()
     if subs then top = top + SUB_H end
 
     local side = M.side
-    -- At max level the XP icons (Rest, 5% XP) go: they do nothing there.
-    local n = self:VisibleCount()
+    -- Which icons show: at max level the XP icons (Rest, 5% XP) go, and with
+    -- "Only show what's missing" so do the ones whose buff you have. The
+    -- rest close up from the left.
+    local vis = self:ShownSlots()
+    local shown = {}
+    for _, i in ipairs(vis) do shown[i] = true end
+    local prev
     for i, slot in ipairs(self.slots) do
-      slot:SetShown(i <= n)
-      slot.subhead:SetShown(subs and i <= n)
+      slot:SetShown(shown[i] or false)
+      slot.subhead:SetShown(subs and shown[i] or false)
+      if shown[i] then
+        slot:ClearAllPoints()
+        if prev then
+          slot:SetPoint("TOPLEFT", prev, "TOPRIGHT", GAP, 0)
+        else
+          slot:SetPoint("TOPLEFT", f, "TOPLEFT", side, -top)
+        end
+        prev = slot
+      end
     end
+    local n = math.max(#vis, 1)
     local rowW = SIZE * n + GAP * (n - 1)
     f:SetSize(rowW + side * 2, top + SIZE + DURATION_H + M.bottom)
     -- Forever's action button ring on each icon, with the bronze styles.
     local rings = (style == "bronze" or style == "slim") and ns.Frame:IconRingOK()
     for _, slot in ipairs(self.slots) do slot.top.ring:SetShown(rings) end
-    self.slots[1]:ClearAllPoints()
-    self.slots[1]:SetPoint("TOPLEFT", f, "TOPLEFT", side, -top)
     ns.Frame:Apply(style)
     f.title:ClearAllPoints()
     f.title:SetPoint("CENTER", f, "TOP", 0, -M.titleY)
     f.title:SetShown(framed)
-    f:SetShown(ns.db.enabled)
+    -- Nothing missing: the whole panel goes.
+    f:SetShown(ns.db.enabled and #vis > 0)
+    self.layoutKey = table.concat(vis, ",")
   end)
 end
 
 function B:VisibleCount()
   if ns.db.hideXPAtMax and ns.AtMaxLevel() and not ns.Demo.active then return 2 end
   return COUNT
+end
+
+-- "Only show what's missing": do you have what icon i stands for? Your real
+-- buffs (Status.lua, Food.lua), kept ones in combat included. A buff in its
+-- last minute counts as missing, so its icon comes back to remind you.
+local HAVE = {
+  function(s) return s.wellRested and ns.Status:BagStacks(s.wellRested) >= ns.Status.BAG_STACKS and s.wellRested end,
+  function(s) return s.benefits end,
+  function(s) return s.boosted end,
+  function() return ns.Food.s end,
+}
+
+function B:Have(i)
+  local a = HAVE[i](ns.Status.s)
+  if not a then return false end
+  local left = ns.Status:Left(a)
+  return not (left and left < WARN)
+end
+
+-- The icons to show, in order. The demo always shows them all.
+function B:ShownSlots()
+  local out = {}
+  local filter = ns.db.onlyMissing and not ns.Demo.active
+  for i = 1, self:VisibleCount() do
+    if not filter or not self:Have(i) then out[#out + 1] = i end
+  end
+  return out
 end
 
 function B:ResetPosition()
@@ -542,6 +588,11 @@ end
 
 function B:Refresh()
   if not self.frame then return end
+  -- A buff came or went with "Only show what's missing" on: lay the icons
+  -- out again (queued until you leave combat, like every layout change).
+  if self.layoutKey and table.concat(self:ShownSlots(), ",") ~= self.layoutKey then
+    self:ApplyLayout()
+  end
   local S = ns.Status
   local s = ns.Demo.active and ns.Demo.s or S.s
   local bags = ns.Demo.active and (ns.Demo.bags or 0) or S.bagCount
@@ -600,11 +651,16 @@ end
 ns.Listen("LOGIN", function()
   Build()
   B:Refresh()
+  -- With every buff up, the panel is hidden and its OnUpdate stops: still
+  -- check each second, so an icon comes back in its buff's last minute.
+  C_Timer.NewTicker(1, function()
+    if ns.db.onlyMissing and ns.db.enabled and not B.frame:IsShown() then B:Refresh() end
+  end)
 end)
 ns.Listen("STATUS_CHANGED", function() B:Refresh() end)
 ns.Listen("SETTINGS_CHANGED", function(key)
   if key == "scale" or key == "enabled" or key == "framed" or key == "borderStyle" or key == "iconLabels"
-    or key == "hideXPAtMax" or key == "demo" then
+    or key == "hideXPAtMax" or key == "demo" or key == "onlyMissing" then
     B:ApplyLayout()
   end
   B:Refresh()

@@ -1,4 +1,4 @@
-# Toasty Buffs (v0.11.0)
+# Toasty Buffs (v0.12.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -16,6 +16,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
   - **No Nutritious food?** A gray Well Fed icon that says "No food".
 - **Fully toasty.** When all four icons are lit (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
 - **Warnings.** In the last minute of Well-Rested, Camp Benefits or the XP food buff, its icon pulses and a quiet chat line says so. Another line tells you when one runs out (Well Fed also drops when you die).
+- **Only show what's missing.** Settings → **Only show what's missing** hides an icon while you have its buff (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest, XP food), so a showing icon is your cue to go get it. The others close up, and with everything up the whole panel hides. An icon comes back in its buff's last minute. Off by default.
 - **Level 60.** XP buffs do nothing at max level, so the Rest and 5% XP icons hide themselves there (Settings → Hide XP icons at level 60).
 - **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with. Buffs that add a number (mana, Strength, Stamina, Intellect, Spirit, Attack Power, the Lute's armor) show **what you get at your level**, and the level where it goes up next. It also tells you about you: when you already have that class buff (so the camp buff won't add to it), your Camp Tent cooldown, and when you can place your own next camp object.
 - **Settings** in Esc → Options → AddOns → Toasty Buffs (or `/toasty`).
@@ -37,7 +38,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - A buff you had before you levelled up isn't read, in case it still carries the old number. Learning reads English tooltips only; other languages use the table.
 
 ### Combat and secret values
-- Using an item needs a secure button, so the icon bar is protected: moving it, resizing it, showing or hiding it and switching icon 1 between "buff" and "use bag" wait until you leave combat. The icons and times still update in combat.
+- Using an item needs a secure button, so the icon bar is protected: moving it, resizing it, showing or hiding it (Only show what's missing too) and switching icon 1 between "buff" and "use bag" wait until you leave combat. The icons and times still update in combat.
 - In combat, Forever hides which buff is which from addons. So the buffs themselves are drawn by the game: icons 1 and 2 each have an engine aura slot (the 12.1 aura containers, as EllesmereUI uses them) that the game fills with the matching buff, with its icon, stacks and countdown, in or out of combat. Toasty only draws what lies under it: the sleeping bag button, "No bag", and the gray icons.
 - XP food (icon 4): each food has its own Well Fed spell, and the XP bonus is only in its tooltip. Out of combat, Toasty reads a Well Fed buff's tooltip for "experience" and remembers whether that spell gives XP. From then on that food is game-drawn too, so it works in combat. The very first time you eat a new food, if you go straight into combat, the icon counts down from the time it read.
 - Boosted Rest (icon 3) is a debuff, which the game-drawn slots don't show, so Toasty draws it itself. In combat it stays lit and counts down from the end time it read before the fight.
@@ -109,6 +110,7 @@ Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.
 - Fallback only: that `C_UnitAuras.GetPlayerAuraBySpellID` finds the buffs in combat: run `/toasty probe` during a fight. "by-ID lookup worked in combat yes" means icons stay exact in combat; "not yet" with "kept" buffs means Toasty is holding the last known state.
 - That Boosted Rest is a debuff with a timer, and that you can get rested XP from a tent again once it's gone (icon 3 gray).
 - That clicking the bag icon uses the bag once, not twice or never. Probe shows "button uses bag" and your "cast on key down" setting.
+- Only show what's missing: icons hide as their buffs arrive and come back in the last minute, the row closes up without gaps, and the panel hides when nothing is missing. Probe "Icons shown": "only missing on, showing ..." should match "laid out ..." out of combat.
 - That hovering an icon with an active buff shows only one tooltip, in and out of combat. Probe "tooltips left to the game" should go up each time you hover one.
 - That camp objects show a tooltip when hovered at all (some world objects don't), and that the tooltip's first line is the object's plain name. Probe "Object tooltips" shows how many were explained, and the title of the last world tooltip that wasn't a known object, so a different name can be added.
 - What the Faction Banner is called in game.
