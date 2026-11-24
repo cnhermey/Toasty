@@ -1,4 +1,4 @@
-# Toasty Buffs (v0.12.2)
+# Toasty Buffs (v0.13.0)
 
 Your camping status in WoW: Forever, as four icons that look like your buff bar, plus tooltips that explain camp objects when you hover them in the world.
 
@@ -14,10 +14,11 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 - **Icon 4: XP food.** Well Fed from **Nutritious** food (+5% experience from kills, 15 minutes), with its time left. Well Fed from food without the XP bonus doesn't count.
   - **No XP food buff?** The icon becomes your best Nutritious food (the highest level you can eat): click it to eat. It shows how many you have.
   - **No Nutritious food?** A gray Well Fed icon that says "No food".
-- **Fully toasty.** When all four icons are lit (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
+- **Fully toasty.** When every icon you show is lit (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest and XP food), "Toasty" turns red with a little campfire on each side.
 - **Warnings.** In the last minute of Well-Rested, Camp Benefits or the XP food buff, its icon pulses and a quiet chat line says so. Another line tells you when one runs out (Well Fed also drops when you die).
 - **Only show what's missing.** Settings → **Only show what's missing** hides an icon while you have its buff (a full 3/3 Well-Rested, Camp Benefits, Boosted Rest, XP food), so a showing icon is your cue to go get it. The others close up, and with everything up the whole panel hides. An icon comes back in its buff's last minute. Off by default.
-- **Level 60.** XP buffs do nothing at max level, so the Rest and 5% XP icons hide themselves there (Settings → Hide XP icons at level 60).
+- **Pick your icons.** Settings → **Show icons** has a switch for each one: Bag, Buffs, Rest and 5% XP. The others close up; warnings only come for icons that show.
+- **Level 60.** XP buffs do nothing at max level, so the Bag (Well-Rested is +XP), Rest and 5% XP icons hide themselves there and only Buffs stays (Settings → Hide XP icons at level 60).
 - **Camp object tooltips.** Hover a camp object or campfire in the world, and its tooltip says what it does: the profession and tier, the buff or service, what it includes from the tier below, and which class buff it doesn't stack with. Buffs that add a number (mana, Strength, Stamina, Intellect, Spirit, Attack Power, the Lute's armor) show **what you get at your level**, and the level where it goes up next. It also tells you about you: when you already have that class buff (so the camp buff won't add to it), your Camp Tent cooldown, and when you can place your own next camp object.
 - **Settings** in Esc → Options → AddOns → Toasty Buffs (or `/toasty`).
 
@@ -94,6 +95,7 @@ Your camping status in WoW: Forever, as four icons that look like your buff bar,
 Camp object descriptions come from Wowhead's Camping Overview guide (patch 1.60.1). Edit `DATA` at the top of `Objects.lua` to change them.
 
 ## Needs in-game verification
+- Show icons switches: each one hides its icon (after combat) and the row closes up. At level 60 only Buffs shows. Probe "Icons shown": "allowed 2" at 60, and "switches BCRF" with a letter turning to "-" for each icon switched off.
 - The bronze border: that it lines up (no gaps at the corners, the title bar behind "Toasty"), and the slim style too. Probe "Border" shows which style is drawn and which art exists.
 - The bronze ring on each icon (Forever's action button frame) fits the 30 px icons.
 - The sleeping bag countdown: that using the bag is seen (probe "Sleeping bag": "bag uses seen 1"), that a stack arrives about when the countdown hits 0, and whether moving off the bag and back really restarts the minute.

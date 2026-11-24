@@ -72,7 +72,8 @@ function B:ApplyLayout()
     if subs then top = top + SUB_H end
 
     local side = M.side
-    -- Which icons show: at max level the XP icons (Rest, 5% XP) go, and with
+    -- Which icons show: your Show icons switches, at max level minus the XP
+    -- icons (Bag, Rest, 5% XP), and with
     -- "Only show what's missing" so do the ones whose buff you have. The
     -- rest close up from the left.
     local vis = self:ShownSlots()
@@ -108,9 +109,24 @@ function B:ApplyLayout()
   end)
 end
 
+-- Settings > Show icons: one switch per icon. At max level the icons that
+-- only add experience (Bag, Rest, 5% XP) go too: Well-Rested is +XP, so a
+-- level 60 has no use for the sleeping bag (0.13.0; before, Bag stayed).
+-- The demo ignores the level, not your switches.
+B.SHOW_KEYS = { "showBag", "showBuffs", "showRest", "showFood" }
+B.XP_ONLY = { true, false, true, true }
+
+function B:Allowed(i)
+  if not ns.db[self.SHOW_KEYS[i]] then return false end
+  if self.XP_ONLY[i] and ns.db.hideXPAtMax and ns.AtMaxLevel() and not ns.Demo.active then return false end
+  return true
+end
+
+-- How many icons the settings allow (before "Only show what's missing").
 function B:VisibleCount()
-  if ns.db.hideXPAtMax and ns.AtMaxLevel() and not ns.Demo.active then return 2 end
-  return COUNT
+  local n = 0
+  for i = 1, COUNT do if self:Allowed(i) then n = n + 1 end end
+  return n
 end
 
 -- "Only show what's missing": do you have what icon i stands for? Your real
@@ -134,8 +150,8 @@ end
 function B:ShownSlots()
   local out = {}
   local filter = ns.db.onlyMissing and not ns.Demo.active
-  for i = 1, self:VisibleCount() do
-    if not filter or not self:Have(i) then out[#out + 1] = i end
+  for i = 1, COUNT do
+    if self:Allowed(i) and (not filter or not self:Have(i)) then out[#out + 1] = i end
   end
   return out
 end
@@ -542,20 +558,27 @@ end
 -- Old name, for the probe: does the bag button use the bag?
 function B:BagArmed() return self.actions[1] == ns.Status.BAG_ITEM end
 
--- "Toasty!": when all four icons are lit (Well-Rested, Camp Benefits,
+-- "Toasty!": when every icon you show is lit (Well-Rested, Camp Benefits,
 -- Boosted Rest, XP food), the name turns red with a campfire on each side.
--- Read from Toasty's own buff state, also when the game draws the icons.
+-- Icons switched off (or hidden at max level) don't count. Read from
+-- Toasty's own buff state, also when the game draws the icons.
 function B:ApplyToasty(s, food)
   local f = self.frame
   local S = ns.Status
-  -- A full sleeping bag (3 stacks) counts; at max level only Bag and Buffs.
-  local bag = s.wellRested and S:BagStacks(s.wellRested) >= S.BAG_STACKS
-  local all
-  if self:VisibleCount() < COUNT then
-    all = bag and s.benefits and true or false
-  else
-    all = bag and s.benefits and S:RestOK(s) and food and true or false
+  local lit = {
+    s.wellRested and S:BagStacks(s.wellRested) >= S.BAG_STACKS,   -- a full sleeping bag (3 stacks)
+    s.benefits,
+    S:RestOK(s),
+    food,
+  }
+  local any, all = false, true
+  for i = 1, COUNT do
+    if self:Allowed(i) then
+      any = true
+      if not lit[i] then all = false end
+    end
   end
+  all = any and all
   local c = all and UI.RED or UI.GOLD
   f.title:SetTextColor(c.r, c.g, c.b)
   local show = all and ns.db.framed
@@ -584,6 +607,7 @@ function B:PaintBagProgress(truth)
     slot.subhead:SetTextColor(0.82, 0.82, 0.82)
   end
   local top = slot.top
+  top.counting = waiting and true or false   -- Refresh hides the bag cooldown's numbers meanwhile
   if moving then
     top.cd:Hide()
     top.cdStart = nil
@@ -650,6 +674,14 @@ function B:Refresh()
   else
     ClearCooldown(cd)
   end
+  -- The bag's own cooldown writes its time left ("50m") in the middle of
+  -- the icon, the same spot as the next-stack seconds: both showed at once
+  -- ("550m"). While the seconds count, hide the cooldown's numbers.
+  local counting = self.slots[1].top.counting and true or false
+  if cd.SetHideCountdownNumbers and cd.toastyHideNumbers ~= counting then
+    cd:SetHideCountdownNumbers(counting)
+    cd.toastyHideNumbers = counting
+  end
 
   Paint(self.slots[2], CampView(s))
   Paint(self.slots[3], RestView(s))
@@ -678,13 +710,14 @@ end)
 ns.Listen("STATUS_CHANGED", function() B:Refresh() end)
 ns.Listen("SETTINGS_CHANGED", function(key)
   if key == "scale" or key == "enabled" or key == "framed" or key == "borderStyle" or key == "iconLabels"
-    or key == "hideXPAtMax" or key == "demo" or key == "onlyMissing" then
+    or key == "hideXPAtMax" or key == "demo" or key == "onlyMissing"
+    or key == "showBag" or key == "showBuffs" or key == "showRest" or key == "showFood" then
     B:ApplyLayout()
   end
   B:Refresh()
 end)
 
--- Reaching max level drops the XP icons (out of combat).
+-- Reaching max level drops the XP icons: Bag, Rest, 5% XP (out of combat).
 ns.On("PLAYER_LEVEL_UP", function()
   C_Timer.After(0.5, function() B:ApplyLayout(); B:Refresh() end)
 end)

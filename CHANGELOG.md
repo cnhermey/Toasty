@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.0 (2026-11-24)
+- New: Settings → **Show icons** has a switch for each icon (Bag, Buffs, Rest, 5% XP), so you can hide the ones you don't care about. The rest close up, "Toasty!" goes red when every icon you show is lit, and warnings only come for icons that show.
+- Changed: at level 60 the Bag icon hides too (Well-Rested only adds experience), so only Buffs stays. Turn off Hide XP icons at level 60 to keep them all.
+
+## 0.12.3 (2026-11-20)
+- Fixed: right after you used your sleeping bag, the Bag icon showed two timers on top of each other (the seconds to the next stack and the bag's own cooldown, e.g. "550m"). While the seconds count down, only they show; the bag's cooldown time comes back after.
+
 ## 0.12.2 (2026-11-18)
 - Fixed: the 5% XP icon didn't light up when you were Well Fed from Nutritious food. Toasty now learns the XP food buff when you eat (the new 15-minute buff), instead of relying on the buff's description.
 - Fixed: the Rest icon only lit up with the Camp Tent's cooldown (Boosted Rest). It now goes by your rested XP: lit at 5% of your level or more (a tent can't add more then), with the percent under the icon. Gray below 5% means a Camp Tent can top you up.

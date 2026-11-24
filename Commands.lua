@@ -105,7 +105,12 @@ local function Probe()
     .. " · values saved " .. Sc:LearnedCount() .. " (new " .. Sc.seen.learned .. ", changed " .. Sc.seen.changed .. ")"
     .. " · last read: " .. tostring(Sc.last or "none"))
   P("    Differs from the level table: " .. (#mism > 0 and ns.UI.Wrap(ns.UI.YELLOW, table.concat(mism, "; ")) or Gray("nothing")))
+  local allowed = {}
+  for i = 1, 4 do if B:Allowed(i) then allowed[#allowed + 1] = i end end
   P("  Icons shown " .. tostring(B.frame and B.frame:IsShown() or false)
+    .. " · allowed " .. (#allowed > 0 and table.concat(allowed, ",") or "none")
+    .. " (switches " .. (ns.db.showBag and "B" or "-") .. (ns.db.showBuffs and "C" or "-")
+    .. (ns.db.showRest and "R" or "-") .. (ns.db.showFood and "F" or "-") .. ")"
     .. " · in combat " .. tostring(InCombatLockdown() and true or false)
     .. " · demo " .. tostring(ns.Demo.active == true)
     .. " · only missing " .. (ns.db.onlyMissing and ("on, showing " .. (table.concat(B:ShownSlots(), ",") ~= "" and table.concat(B:ShownSlots(), ",") or "none")

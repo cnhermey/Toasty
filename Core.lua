@@ -75,7 +75,11 @@ ns.DEFAULTS = {
   objectTips = true,       -- explain camp objects when you hover them in the world
   engine = true,           -- let the game draw the buffs (works in combat)
   warnings = true,         -- pulse + a chat line in a buff's last minute, and when it drops
-  hideXPAtMax = true,      -- at max level, hide Rest and 5% XP (XP buffs do nothing there)
+  showBag = true,          -- icon 1: Well-Rested / sleeping bag
+  showBuffs = true,        -- icon 2: Camp Benefits
+  showRest = true,         -- icon 3: rested XP / Boosted Rest
+  showFood = true,         -- icon 4: XP food
+  hideXPAtMax = true,      -- at max level, hide Bag, Rest and 5% XP (XP buffs do nothing there)
   learned = {},            -- spell IDs seen on this client, by our key
   scaling = {},            -- camp buff numbers read from your own buffs: [stat][level] = value
   demo = false,            -- demo icons; always off after a reload

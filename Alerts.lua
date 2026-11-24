@@ -20,12 +20,15 @@ local function Watched(useDemo)
   local S, F = ns.Status, ns.Food
   local s = useDemo and ns.Demo.s or S.s
   local food = useDemo and ns.Demo.s.food or F.s
-  local list = {
+  local all = {
     { key = "wellRested", slot = 1, name = S:Name("wellRested"), a = s.wellRested },
     { key = "benefits",   slot = 2, name = S:Name("benefits"),   a = s.benefits },
+    { key = "food",       slot = 4, name = F:Name() .. " (XP)",  a = food },
   }
-  if ns.Bar:VisibleCount() >= 4 then
-    list[#list + 1] = { key = "food", slot = 4, name = F:Name() .. " (XP)", a = food }
+  -- Only icons that show (Settings > Show icons; the XP ones go at level 60).
+  local list = {}
+  for _, w in ipairs(all) do
+    if ns.Bar:Allowed(w.slot) then list[#list + 1] = w else ns.Bar:SetWarning(w.slot, false) end
   end
   return list
 end
@@ -76,5 +79,6 @@ ns.Listen("LOGIN", function()
 end)
 
 ns.Listen("SETTINGS_CHANGED", function(key)
-  if key == "warnings" or key == "demo" then A:Tick() end
+  if key == "warnings" or key == "demo" or key == "hideXPAtMax"
+    or key == "showBag" or key == "showBuffs" or key == "showFood" then A:Tick() end
 end)
